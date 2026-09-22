@@ -1,0 +1,365 @@
+# Genshin Companion App — Build Plan for Claude Code
+
+This file is the project plan **and** the working instructions for Claude Code.
+Keep it in the project root. Claude Code reads it at the start of every session.
+
+The app is a surprise gift for one player (my girlfriend). It answers one question:
+**"Given what I own, what should I do next?"**
+
+---
+
+## How to work with me (read this first, Claude)
+
+1. **One step at a time.** I'll say things like "do step 4" or "continue". Only work on that step.
+2. **Ask before guessing.** Every step has an **Ask first** list. Ask those questions *before* writing code, all at once, and wait for my answers. If anything else comes up that you can't reasonably infer, stop and ask. Never invent game numbers (set bonuses, stat values, costs); ask me or read them from genshin-db.
+3. **Finish the step properly.** Meet every item under **Done when**, run the tests and the build, and fix anything broken.
+4. **Update this file** at the end of each step:
+   - Tick the step in the Progress table.
+   - Add my answers and any decisions to the **Decisions log**.
+5. **Commit** with a message like `step 4: roster screen`.
+6. **Report back briefly:** what you built, how I can check it (`npm run dev` + what to click), and what the next step will ask me.
+7. **Keep it simple.** This is a gift for one person. No accounts, no backend beyond Step 13, no features not in this plan unless I ask.
+8. **Design matters.** She'll use it because it looks nice. Every screen should feel polished on a phone first.
+
+---
+
+## Progress
+
+| Step | Name | Status |
+| --- | --- | --- |
+| 0 | Project setup | [x] |
+| 1 | Game data layer | [ ] |
+| 2 | Data model & local storage | [ ] |
+| 3 | Design system & app shell | [ ] |
+| 4 | Roster | [ ] |
+| 5 | Artifact inventory & quick-add | [ ] |
+| 6 | Materials planner | [ ] |
+| 7 | Stat calculator | [ ] |
+| 8 | Modifier system (sets, resonance, weapons) | [ ] |
+| 9 | Character profiles | [ ] |
+| 10 | Build optimizer | [ ] |
+| 11 | Character page | [ ] |
+| 12 | Home screen & farming plan | [ ] |
+| 13 | UID import via Enka (optional) | [ ] |
+| 14 | Polish, PWA & deploy | [ ] |
+| 15 | Gift prep | [ ] |
+
+---
+
+## Tech stack (fixed unless I say otherwise)
+
+- **React + TypeScript + Vite**
+- **Tailwind CSS** for styling
+- **Dexie** (IndexedDB) for local storage, plus JSON export/import for backups
+- **genshin-db** for game data, trimmed into a JSON snapshot at build time
+- **Vitest** for tests
+- **Vercel** for hosting (free tier), installable as a PWA
+- Heavy calculations (the optimizer) run in a **Web Worker** so the UI never freezes
+
+---
+
+## Step 0 — Project setup
+
+**Ask first**
+- Project/app name?
+- Is Node.js installed? Which version? (`node -v`)
+- Should I initialise git here?
+
+**Tasks**
+- Scaffold Vite + React + TS, add Tailwind, Vitest, ESLint, Prettier.
+- Folder structure: `src/data`, `src/db`, `src/engine`, `src/components`, `src/screens`, `scripts/`.
+- Add `npm run dev`, `build`, `test`, `lint` scripts.
+
+**Done when**
+- `npm run dev` shows a placeholder page; `npm test` passes one sample test; first commit made.
+
+---
+
+## Step 1 — Game data layer
+
+**Ask first**
+- Which characters does she own? (A rough list is fine; we'll refine in Step 4.)
+- Any very new characters she owns that might be missing from genshin-db?
+
+**Tasks**
+- Install `genshin-db`. Write `scripts/build-game-data.ts` that outputs a trimmed JSON snapshot to `src/data/generated/`:
+  - Characters: name, element, weapon type, rarity, base stats per level, ascension stat, level-up and talent material costs, icon URL if available.
+  - Weapons: base ATK and substat per level, passive text, material costs.
+  - Artifact sets: name, 2pc and 4pc text, icon.
+  - Materials: name, type, source, domain weekdays for talent/weapon books.
+- Print a summary: counts, game data version, and any owned characters that are missing.
+- Typed loaders in `src/data/index.ts`.
+
+**Done when**
+- Snapshot generated and committed; loaders are typed; a test checks one known character's base stats load correctly.
+- You've told me which game version the data covers and listed anything missing.
+
+---
+
+## Step 2 — Data model & local storage
+
+**Ask first**
+- Nothing, unless something in Step 1 changed the plan.
+
+**Tasks**
+- TypeScript types in `src/db/types.ts`:
+  - `OwnedCharacter` (id, level, ascension, constellation, talent levels, equipped weapon id, equipped artifact ids, locked flag, favourite flag)
+  - `OwnedWeapon` (id, key, level, ascension, refinement)
+  - `Artifact` (id, set, slot, rarity, level, main stat, up to 4 substats with values)
+  - `MaterialCount` (key, count)
+  - `Goal` (character, target level/talents, created date)
+  - `Team` (character + up to 3 teammates)
+- Dexie database with those tables.
+- Export all data to a JSON file and import it back (for backups).
+
+**Done when**
+- Round-trip test: save sample data → export → wipe → import → identical.
+
+---
+
+## Step 3 — Design system & app shell
+
+**Ask first**
+- What vibe should it have? (e.g. dreamy/soft, sleek/dark, cosy)
+- Her favourite colour(s) and favourite element?
+- Her favourite character (featured on the home screen)?
+- Should the app have a name or a small personal message shown somewhere?
+
+**Tasks**
+- Colour tokens: base palette, accent, the seven element colours; dark mode default with a light option.
+- Components: `Card`, `Button`, `Chip`, `Stepper` (+/−), `ProgressBar`, `Sheet` (bottom sheet), `ElementBadge`, `ScoreBadge`, `EmptyState`.
+- App shell: bottom tab bar (Home, Roster, Artifacts, Materials), page transitions, safe-area padding for phones.
+- A `/styleguide` route showing every component.
+
+**Done when**
+- I've seen the styleguide on my phone (via `npm run dev -- --host`) and approved it. **Ask me to review before marking done.**
+
+---
+
+## Step 4 — Roster
+
+**Ask first**
+- The characters she plays most (start with 5–10), with level, constellation and talent levels if I know them. Otherwise leave editable defaults.
+- Which weapons they currently use?
+
+**Tasks**
+- Roster grid: portrait cards coloured by element; filters by element and weapon type; favourites pinned.
+- Add-character flow: search → select → set level/ascension/constellation/talents with steppers.
+- Weapon inventory and equip flow (only matching weapon types).
+
+**Done when**
+- I can add, edit and remove characters and weapons on my phone; data survives a refresh.
+
+---
+
+## Step 5 — Artifact inventory & quick-add
+
+**Ask first**
+- Roughly how many artifacts will she enter? (Affects grid design.)
+- Which artifact sets does she mainly farm?
+
+**Tasks**
+- Quick-add bottom sheet: set icon → slot icon → main stat chip → up to 4 substat chips → values. Remember the last-used set and rarity.
+- Validation: main stat allowed for the slot, substats unique and not equal to the main stat, values within real roll ranges (read from data; ask me if unsure).
+- Inventory grid with filters (set, slot, main stat) and equip/unequip to a character.
+- Edit and delete (delete needs a confirm).
+
+**Done when**
+- Adding one artifact takes under ~15 seconds; invalid artifacts are blocked with a friendly message; tests cover validation.
+
+---
+
+## Step 6 — Materials planner
+
+**Ask first**
+- Which materials does she want to track: everything, or only ones for her goals? (Recommend: only goal materials.)
+
+**Tasks**
+- Goal creation: pick a character, current → target level, current → target talents (and optionally a weapon).
+- Calculate required materials from Step 1 cost data; show have / need bars.
+- Edit owned counts with steppers; "enough" turns green.
+- Tests: known level-up cost totals match data.
+
+**Done when**
+- A goal like "Level 80 → 90" shows correct totals and updates live as counts change.
+
+---
+
+## Step 7 — Stat calculator
+
+**Ask first**
+- **Please give me one real character's in-game stat screen** (level, weapon, artifacts, and final ATK/HP/DEF/EM/CR/CD/ER/DMG%). I'll use it to verify the maths.
+
+**Tasks**
+- `src/engine/stats.ts`: final stats = character base + ascension stat + weapon base/substat + artifact main/substats + always-on 2pc bonuses.
+- Handle flat vs % correctly (e.g. ATK% applies to character base ATK + weapon base ATK only).
+- Unit tests, including the real character above (within rounding).
+
+**Done when**
+- Calculated stats match the in-game screen within ±1 for flat stats and ±0.1% for percentages.
+
+---
+
+## Step 8 — Modifier system (sets, resonance, weapon passives)
+
+**Ask first**
+- Confirm the 10–15 artifact sets to support first (list from her characters' needs).
+- For each set's conditional 4pc effect, I'll show you my proposed numbers and conditions. **Confirm them before I commit.**
+- Which weapon passives to model first (only her equipped/owned good weapons)?
+
+**Tasks**
+- A `Modifier` type: `{ source, stat, value, condition?, stacks? }`.
+- `src/engine/modifiers/sets.ts`, `resonance.ts`, `weapons.ts`: hand-written tables.
+- Resonance from a team: Pyro +25% ATK, Hydro +25% HP, Cryo +15% CR (conditional), Dendro +50 EM (+ conditional extra), Geo +15% DMG while shielded (conditional). Electro/Anemo/Protective Canopy have no damage stat and are shown as info only.
+- Conditional modifiers have an id so the UI can toggle them.
+- Team-only effects (buffs to others, enemy RES shred) are listed as notes, not calculated, in v1.
+
+**Done when**
+- Tests: adding a Pyro teammate raises ATK by 25% of base ATK; each supported set's 2pc/4pc applies only when enough pieces are equipped.
+
+---
+
+## Step 9 — Character profiles
+
+**Ask first**
+- For each of her main characters, confirm my proposed profile (below). **Don't guess silently; show me the table and wait.**
+
+**Tasks**
+- `src/engine/profiles.ts`, one profile per character:
+  - Scaling stat (ATK / HP / DEF / EM)
+  - Main damage type (e.g. Normal Attack, Skill, Burst) and element
+  - Allowed Sands / Goblet / Circlet main stats
+  - Candidate sets (4pc options and 2+2 pairs)
+  - Typical reaction and a simple reaction multiplier (none / vaporize / melt / aggravate etc.)
+  - Minimum Energy Recharge target, if any
+- Present all profiles as a table for my approval.
+
+**Done when**
+- I've approved each profile.
+
+---
+
+## Step 10 — Build optimizer
+
+**Ask first**
+- Should characters "lock" their gear so the optimizer can't take it for someone else? (Recommend: yes, with a lock toggle.)
+
+**Tasks**
+- Score function:
+  `Score = ScalingStat × (1 + DMG%) × (1 + min(CR,1) × CD) × ReactionMult`
+  Skip enemy DEF/RES, since they don't change the ranking.
+- Search, in a Web Worker:
+  1. Filter inventory by allowed main stats; exclude gear locked to other characters.
+  2. Keep the top 6–8 pieces per slot by a rough score.
+  3. Try 4pc of each candidate set, 2+2 pairs, and 4pc + best off-piece.
+  4. Apply stats, set bonuses, resonance and weapon passive (Steps 7–8).
+  5. Return the top 3 builds with the % difference vs current and a one-line reason each.
+- Respect Energy Recharge minimums from the profile.
+- Tests: the optimizer picks an obviously better piece; the 4pc vs 2+2 comparison behaves sensibly; runtime under 1 second on a realistic inventory.
+
+**Done when**
+- Tests pass and a benchmark with ~300 artifacts finishes in under 1 second.
+
+---
+
+## Step 11 — Character page
+
+**Ask first**
+- Any extra info she'd like on this page?
+
+**Tasks**
+- Header: portrait, element, level, constellation, talents.
+- Team picker (3 slots) with a resonance badge that lights up.
+- Toggles for conditional effects (set 4pc, resonance conditions), sensible defaults.
+- Current build: stats and build score.
+- Best builds (top 3): "% better than current", which pieces to swap, and an **Equip** button.
+- Material needs for this character's goal.
+
+**Done when**
+- Changing a teammate or toggle instantly re-ranks the builds; equipping a suggested build works.
+
+---
+
+## Step 12 — Home screen & farming plan
+
+**Ask first**
+- Her server region (Europe / America / Asia / TW-HK-MO)? This sets the daily reset time for domain schedules.
+- Does she usually use all her resin daily?
+
+**Tasks**
+- Home: greeting (personal message from Step 3), featured character, active goals with progress bars.
+- **Today's farming:** which talent/weapon domains are open today (by weekday and reset time) that help her goals; boss materials needed.
+- Resin-days estimate per goal (use average drop rates; show as "about N days").
+
+**Done when**
+- The home screen shows correct domains for today in her region and useful tasks for her goals.
+
+---
+
+## Step 13 — UID import via Enka (optional)
+
+**Ask first**
+- Do we want this? If yes: her UID, and do I have a Vercel account? (**I'll log in myself; don't handle my passwords.**)
+
+**Tasks**
+- Vercel serverless function `/api/enka/[uid]` that calls the Enka.Network API, caches for the returned `ttl`, and sets a descriptive User-Agent.
+- Map Enka IDs to our data; import showcase characters, weapons and their equipped artifacts.
+- Merge UI: show what's new or changed, and let her choose what to import. Never silently overwrite.
+
+**Done when**
+- Importing her UID adds her showcase characters correctly and nothing is overwritten without confirmation.
+
+---
+
+## Step 14 — Polish, PWA & deploy
+
+**Ask first**
+- App icon idea? (Something original. Don't copy official game art for the icon.)
+- Vercel project name / URL?
+
+**Tasks**
+- PWA manifest, icons, offline support, "Add to Home Screen".
+- Empty states, loading states, small animations, haptic-feeling button presses.
+- Accessibility pass: contrast, tap target sizes, labels.
+- Settings: export/import backup, reset data, theme.
+- Deploy to Vercel (I'll do the account login).
+
+**Done when**
+- The app installs to a phone home screen, works offline, and a Lighthouse PWA check passes.
+
+---
+
+## Step 15 — Gift prep
+
+**Ask first**
+- Should I pre-fill any data for her so it isn't empty on first open?
+- Any final personal touches (message, hidden easter egg, favourite character theme)?
+
+**Tasks**
+- Optional first-run welcome flow with the personal message.
+- Seed data if requested.
+- Final bug sweep on a real phone.
+- A short "how to use" card inside the app.
+
+**Done when**
+- I've tested the full flow on my phone and I'm happy to give it to her. 🎁
+
+---
+
+## Decisions log
+
+*(Claude: add answers and decisions here as we go, newest first.)*
+
+| Date | Step | Decision / answer |
+| --- | --- | --- |
+| 2026-09-23 | 0 | Stack as scaffolded: Vite 8, React 19, TS 6, Tailwind v4 (via `@tailwindcss/vite`, no config file), Vitest 5 + jsdom + Testing Library, ESLint 10 flat config + Prettier (no semicolons, single quotes, width 100). The Vite template shipped oxlint; replaced with ESLint per plan. |
+| 2026-09-23 | 0 | App/package name: `teyvat-companion`. Node v24.16.0 / npm 11.13.0. Git initialised; commit after each step. |
+
+---
+
+## Reference
+
+- Game data: https://github.com/theBowja/genshin-db
+- Enka.Network API docs: https://github.com/EnkaNetwork/API-docs/blob/master/api.md
+- Genshin Optimizer (formula reference, GOOD format): https://github.com/frzyc/genshin-optimizer
+- Rotation simulation (not in scope, link only): GCSim
