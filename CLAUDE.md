@@ -29,7 +29,7 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 | --- | --- | --- |
 | 0 | Project setup | [x] |
 | 1 | Game data layer | [x] |
-| 2 | Data model & local storage | [ ] |
+| 2 | Data model & local storage | [x] |
 | 3 | Design system & app shell | [ ] |
 | 4 | Roster | [ ] |
 | 5 | Artifact inventory & quick-add | [ ] |
@@ -352,6 +352,8 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 
 | Date | Step | Decision / answer |
 | --- | --- | --- |
+| 2026-09-23 | 2 | Nothing to ask. Equipment is stored only on the character (`weaponId`, `artifactIds` per slot), so there's one source of truth; "who has this equipped" is derived. `OwnedCharacter` keyed by character key (one per character); weapons/artifacts/goals use `crypto.randomUUID()`. `Team` keyed by main character. Added a small `settings` key/value table (theme, last-used set for Step 5), included in backups. |
+| 2026-09-23 | 2 | Backup format `{ app: 'teyvat-companion', formatVersion: 1, exportedAt, data }`. Import **replaces** all data (in one transaction) and rejects wrong/newer files with a friendly message. Tests use `fake-indexeddb`. |
 | 2026-09-23 | 1 | Data: genshin-db 5.2.14, game data up to **v7.1**. Snapshot: 120 characters, 255 weapons, 59 artifact sets, 504 materials (only materials used in a cost). Regenerate with `npm run build:data`. |
 | 2026-09-23 | 1 | Her characters (all found in data): Sandrone, Odette, Qiqi, Yae Miko, Yelan, Furina, Navia, Skirk, Citlali, Xilonen, Xiangling, Bennett, Varka, Durin, Clorinde. Kept in `scripts/owned-characters.json`. Nothing she owns is newer than 7.1. |
 | 2026-09-23 | 1 | All characters are snapshotted (not only hers) so she can add new ones later. Travelers (Aether/Lumine/Manekin/Manekina) are skipped in v1: they have no fixed element and per-element talents. |
