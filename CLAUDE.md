@@ -33,7 +33,7 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 | 3 | Design system & app shell | [x] |
 | 4 | Roster | [x] |
 | 5 | Artifact inventory & quick-add | [x] |
-| 6 | Materials planner | [ ] |
+| 6 | Materials planner | [x] |
 | 7 | Stat calculator | [ ] |
 | 8 | Modifier system (sets, resonance, weapons) | [ ] |
 | 9 | Character profiles | [ ] |
@@ -352,6 +352,9 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 
 | Date | Step | Decision / answer |
 | --- | --- | --- |
+| 2026-09-23 | 6 | Track **only goal materials**: the Materials tab lists just what active goals need, grouped (Mora & EXP, talent books, gems, boss drops, specialties, common drops, weapon mats), each with have/need bar + counter (tap the number to type; turns mint when enough). One goal per character. |
+| 2026-09-23 | 6 | Level-up EXP from **paimon.moe** (`npm run build:exp-data` → `exp.json`, cumulative EXP to Lv 90 for characters and 3/4/5★ weapons). Mora for levelling = EXP ÷ 5 (characters), ÷ 10 (weapons), as paimon.moe's calculator does. EXP book/ore values (20k/5k/1k, 10k/2k/400) parsed from genshin-db item text; the six items were added to the materials snapshot. EXP need is one bar; her books count by EXP value, with "about N more Hero's Wit". |
+| 2026-09-23 | 6 | **Goals cap at Lv 90** (no cost data for 91–100). Current levels come from the Roster; target talents can't go below current. Optional weapon goal uses the equipped weapon. Verified: Furina 80 → 90 = ascension 6 mats + 3,423,125 EXP + 804,625 Mora (120,000 + EXP ÷ 5). |
 | 2026-09-23 | 5 | She'll enter **200+ artifacts** → dense 4-column tile grid (5 on wider phones), filters: set (picker sheet), slot, main stat (from what's in inventory), "Not equipped". |
 | 2026-09-23 | 5 | Artifact numbers come from **Genshin Optimizer** (my choice when asked; genshin-db has none): `npm run build:artifact-data` → `src/data/generated/artifact-stats.json` (main stat by rarity/level, substat roll tiers, every displayable substat value + fewest rolls, slot main-stat lists, max level, starting substat counts). Supported rarities 3–5★. |
 | 2026-09-23 | 5 | Validation (friendly messages, tests in `src/engine/artifact.test.ts`): set/rarity match, level ≤ max, main stat allowed for slot, ≤4 unique substats ≠ main, each value must be one the game can show (with "Closest: x or y" hint), total rolls ≤ starting max + one per 4 levels, and at least `low + upgrades` substats (so a +20 5★ needs 4). |

@@ -110,6 +110,19 @@ export interface MaterialData {
   /** For talent books / weapon ascension materials: the domain and its open days. */
   domain: { name: string; days: Weekday[] } | null
   icon: string
+  /** For EXP books and enhancement ores: how much EXP one gives. */
+  exp?: number
+}
+
+/** Level-up EXP tables, from paimon.moe (see scripts/build-exp-data.ts). */
+export interface ExpData {
+  source: string
+  /** Total EXP to reach each level from Lv 1; index = level − 1, up to Lv 90. */
+  character: number[]
+  /** Same, per weapon rarity (3, 4, 5). */
+  weapon: Record<number, number[]>
+  /** Mora spent per point of EXP. */
+  moraPerExp: { character: number; weapon: number }
 }
 
 /** Artifact rules and values, from Genshin Optimizer (see scripts/build-artifact-data.ts). */

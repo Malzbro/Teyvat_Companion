@@ -193,10 +193,29 @@ artifactSets.sort(
   (a, b) => Math.max(...b.rarities) - Math.max(...a.rarities) || a.name.localeCompare(b.name),
 )
 
-// --- Materials (only those referenced by a cost) ----------------------------
+// --- Materials (those referenced by a cost, plus EXP books/ores) -------------
 
 const materialsById = new Map<number, any>()
 for (const [key, m] of Object.entries<any>(en.materials)) materialsById.set(m.id, { ...m, key })
+
+// Level-up EXP items aren't in any cost list; their EXP is read from the item text.
+const EXP_ITEMS = [
+  "Hero's Wit",
+  "Adventurer's Experience",
+  "Wanderer's Advice",
+  'Mystic Enhancement Ore',
+  'Fine Enhancement Ore',
+  'Enhancement Ore',
+]
+const expOf = (m: any): number | undefined => {
+  const match = /Gives ([\d,]+) EXP/.exec(m.description ?? '')
+  return match ? Number(match[1].replace(/,/g, '')) : undefined
+}
+for (const name of EXP_ITEMS) {
+  const m = [...materialsById.values()].find((x) => x.name === name)
+  if (!m || !expOf(m)) throw new Error(`EXP item ${name} missing or has no EXP value`)
+  materialIds.add(m.id)
+}
 
 const missingMaterials: number[] = []
 const materials: MaterialData[] = []
@@ -215,6 +234,7 @@ for (const id of [...materialIds].sort((a, b) => a - b)) {
     sources: (m.sources ?? []).filter((s: string) => !s.startsWith('Placeholder')),
     domain: m.daysOfWeek ? { name: m.dropDomainName ?? '', days: m.daysOfWeek as Weekday[] } : null,
     icon: all.image.materials?.[m.key]?.filename_icon ?? '',
+    ...(EXP_ITEMS.includes(m.name) && { exp: expOf(m) }),
   })
 }
 
