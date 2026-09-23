@@ -38,7 +38,7 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 | 8 | Modifier system (sets, resonance, weapons) | [x] |
 | 9 | Character profiles | [x] |
 | 10 | Build optimizer | [x] |
-| 11 | Character page | [ ] |
+| 11 | Character page | [x] |
 | 12 | Home screen & farming plan | [ ] |
 | 13 | UID import via Enka (optional) | [ ] |
 | 14 | Polish, PWA & deploy | [ ] |
@@ -352,6 +352,9 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 
 | Date | Step | Decision / answer |
 | --- | --- | --- |
+| 2026-09-23 | 11 | No extras: "just the plan". Route `/character/:key`; tapping a roster card opens it (Roster tab stays highlighted); the old edit sheet is behind "Edit". Sections: header (portrait, element, Lv/C/talents, weapon), Team (3 slots, all resonances shown, active ones lit), "Effects in play" (toggles/stack steppers, saved per character in `settings` as `conditions:<key>`), Current build (stats, equipped tiles, notes), Best builds (top 3, % vs current, pieces to swap and from whom, Equip), Materials (goal progress + top missing, or "Set a goal"). |
+| 2026-09-23 | 11 | **Build score** (0–100) = current build's score as a % of the best build the optimizer finds from her artifacts (100 = nothing better possible). Worse alternatives show "−x%" muted with a secondary Equip; the current build shows "Already equipped". Optimizer re-runs in the Web Worker whenever team, toggles, gear or levels change. |
+| 2026-09-23 | 11 | Perf note for Step 14: the worker bundle is ~950 KB (it includes the game data). |
 | 2026-09-23 | 10 | **Gear lock: yes.** A "Lock gear" toggle on each character (Roster sheet); a locked character's equipped artifacts are excluded when optimizing anyone else (`lockedArtifactIds`). |
 | 2026-09-23 | 10 | Optimizer (`src/engine/optimizer/`): score = scaling stat × (1 + element + all + damage-type DMG%) × (1 + min(CR,1)·CD) × reaction mult. Candidate pruning: top 6 per slot overall (+2 highest-ER pieces when a profile has an ER minimum), top 5 per slot per 4pc set, top 4 for 2+2 and the "best mix" search. Tries 4pc (all 5 or any off-piece), every 2+2 layout, and best mix. Builds under the ER minimum are only shown if nothing meets it (flagged). Returns top 3 distinct builds with % vs current, swaps and a one-line reason ("4pc Golden Troupe · more HP"). |
 | 2026-09-23 | 10 | Speed: a fast evaluator (typed arrays, cached set effects) scores combinations and is tested to match `computeBuild` exactly. Benchmark: 300 artifacts ≈ 200 ms in tests; ≈ 185 ms inside the real Web Worker in the browser (~33k combos). UI uses `optimizeInBackground()` (Web Worker; falls back to direct call in tests). |

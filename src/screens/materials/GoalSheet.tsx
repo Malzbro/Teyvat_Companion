@@ -28,6 +28,8 @@ interface GoalSheetProps {
   owned: OwnedCharacter[]
   weapons: OwnedWeapon[]
   goals: Goal[]
+  /** Start straight on this character (from the character page). */
+  initialCharacter?: string
   onClose: () => void
 }
 
@@ -37,13 +39,22 @@ const TALENTS = [
   ['burst', 'Elemental Burst'],
 ] as const
 
-export function GoalSheet({ existing, owned, weapons, goals, onClose }: GoalSheetProps) {
-  const [view, setView] = useState<View>(existing ? 'form' : 'pick')
-  const [characterKey, setCharacterKey] = useState(existing?.characterKey ?? '')
+export function GoalSheet({
+  existing,
+  owned,
+  weapons,
+  goals,
+  initialCharacter,
+  onClose,
+}: GoalSheetProps) {
+  const start = existing?.characterKey ?? initialCharacter ?? ''
+  const startTalents = owned.find((c) => c.key === start)?.talents
+  const [view, setView] = useState<View>(start ? 'form' : 'pick')
+  const [characterKey, setCharacterKey] = useState(start)
   const [targetLevel, setTargetLevel] = useState(existing?.targetLevel ?? GOAL_MAX_LEVEL)
   const [targetAscension, setTargetAscension] = useState(existing?.targetAscension ?? 6)
   const [targetTalents, setTargetTalents] = useState<TalentLevels | null>(
-    existing?.targetTalents ?? null,
+    existing?.targetTalents ?? startTalents ?? null,
   )
   const [includeWeapon, setIncludeWeapon] = useState(!!existing?.weapon)
   const [weaponTarget, setWeaponTarget] = useState(
@@ -152,7 +163,7 @@ export function GoalSheet({ existing, owned, weapons, goals, onClose }: GoalShee
 
       {view === 'form' && data && current && (
         <div className="space-y-5">
-          {!existing && (
+          {!existing && !initialCharacter && (
             <button
               type="button"
               onClick={() => setView('pick')}

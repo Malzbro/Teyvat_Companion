@@ -25,6 +25,9 @@ export function AppShell() {
 }
 
 function TabBar() {
+  const { pathname } = useLocation()
+  // Character pages live under the Roster tab.
+  const onCharacter = pathname.startsWith('/character/')
   return (
     <nav
       aria-label="Main"
@@ -39,7 +42,7 @@ function TabBar() {
               className={({ isActive }) =>
                 cn(
                   'flex min-h-13 flex-col items-center justify-center gap-0.5 rounded-full text-[11px] font-bold transition duration-200 active:scale-95',
-                  isActive
+                  isActive || (onCharacter && to === '/roster')
                     ? 'bg-gradient-to-br from-accent/25 to-mint/15 text-accent'
                     : 'text-faint hover:text-muted',
                 )

@@ -10,7 +10,7 @@ import { merge } from './types'
 import { weaponModifiers } from './weapons'
 
 export * from './types'
-export { RESONANCES, activeResonances } from './resonance'
+export { RESONANCES, activeResonances, type Resonance } from './resonance'
 export { SET_EFFECTS, setModifiers } from './sets'
 export { resonanceModifiers } from './resonance'
 export { weaponModifiers } from './weapons'

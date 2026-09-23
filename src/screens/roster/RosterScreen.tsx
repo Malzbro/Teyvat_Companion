@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Heart, Plus, Sword, Users } from 'lucide-react'
 import { useState } from 'react'
+import { useNavigate } from 'react-router'
 import {
   Button,
   Card,
@@ -32,6 +33,7 @@ export function RosterScreen() {
   const [elements, setElements] = useState<Element[]>([])
   const [types, setTypes] = useState<WeaponType[]>([])
   const [open, setOpen] = useState<Open | null>(null)
+  const navigate = useNavigate()
   const owned = useLiveQuery(() => db.characters.toArray(), [])
   const weapons = useLiveQuery(() => db.weapons.toArray(), [])
 
@@ -130,10 +132,9 @@ export function RosterScreen() {
                     role="button"
                     tabIndex={0}
                     aria-label={`${data.name}, level ${c.level}, C${c.constellation}`}
-                    onClick={() => setOpen({ kind: 'character', existing: c })}
+                    onClick={() => navigate(`/character/${c.key}`)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ')
-                        setOpen({ kind: 'character', existing: c })
+                      if (e.key === 'Enter' || e.key === ' ') navigate(`/character/${c.key}`)
                     }}
                     className="flex flex-col items-center p-2.5 pb-3 text-center"
                   >

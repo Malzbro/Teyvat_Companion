@@ -1,18 +1,22 @@
 import 'fake-indexeddb/auto'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { createMemoryRouter, RouterProvider } from 'react-router'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { db } from '../../db'
-import { RosterScreen } from './RosterScreen'
+import { routes } from '../../routes'
 
 beforeEach(async () => {
   await Promise.all(db.tables.map((t) => t.clear()))
 })
 
+const renderRoster = () =>
+  render(<RouterProvider router={createMemoryRouter(routes, { initialEntries: ['/roster'] })} />)
+
 describe('RosterScreen', () => {
   it('adds, edits and removes a character', async () => {
     const user = userEvent.setup()
-    render(<RosterScreen />)
+    renderRoster()
 
     // Add Yelan.
     await user.click((await screen.findAllByRole('button', { name: 'Add character' }))[0])
@@ -25,18 +29,21 @@ describe('RosterScreen', () => {
     const card = await screen.findByRole('button', { name: 'Yelan, level 90, C1' })
     expect(await db.characters.get('yelan')).toMatchObject({ constellation: 1 })
 
-    // Edit: set Elemental Burst to 2 and favourite.
+    // Open her page, edit: Elemental Burst to 2, favourite and lock.
     await user.click(card)
+    await user.click(await screen.findByRole('button', { name: /Edit/ }))
     await user.click(screen.getByRole('button', { name: 'Increase Elemental Burst' }))
     await user.click(screen.getByRole('button', { name: 'Favourite' }))
+    await user.click(screen.getByRole('switch', { name: /Lock gear/ }))
     await user.click(screen.getByRole('button', { name: 'Save' }))
     expect(await db.characters.get('yelan')).toMatchObject({
       favourite: true,
+      locked: true,
       talents: { normal: 1, skill: 1, burst: 2 },
     })
 
-    // Remove with confirm.
-    await user.click(await screen.findByRole('button', { name: 'Yelan, level 90, C1' }))
+    // Remove with confirm; the page goes back to the roster.
+    await user.click(await screen.findByRole('button', { name: /Edit/ }))
     await user.click(screen.getByRole('button', { name: 'Remove from roster' }))
     await user.click(screen.getByRole('button', { name: 'Remove' }))
     expect(await screen.findByText('No characters yet')).toBeInTheDocument()
@@ -44,7 +51,7 @@ describe('RosterScreen', () => {
 
   it('equips a new weapon of the matching type from the character sheet', async () => {
     const user = userEvent.setup()
-    render(<RosterScreen />)
+    renderRoster()
     await user.click((await screen.findAllByRole('button', { name: 'Add character' }))[0])
     await user.type(screen.getByPlaceholderText('Search characters'), 'furina')
     await user.click(screen.getByRole('button', { name: /Furina/ }))
