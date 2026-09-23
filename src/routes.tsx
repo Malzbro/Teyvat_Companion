@@ -1,5 +1,6 @@
-import { Boxes, Flower2 } from 'lucide-react'
+import { Boxes } from 'lucide-react'
 import { AppShell } from './AppShell'
+import { ArtifactsScreen } from './screens/artifacts/ArtifactsScreen'
 import { HomeScreen } from './screens/HomeScreen'
 import { PlaceholderScreen } from './screens/PlaceholderScreen'
 import { RosterScreen } from './screens/roster/RosterScreen'
@@ -12,16 +13,7 @@ export const routes: RouteObject[] = [
     children: [
       { index: true, element: <HomeScreen /> },
       { path: 'roster', element: <RosterScreen /> },
-      {
-        path: 'artifacts',
-        element: (
-          <PlaceholderScreen
-            title="Artifacts"
-            icon={Flower2}
-            message="Add artifacts in a few taps and see who wears what."
-          />
-        ),
-      },
+      { path: 'artifacts', element: <ArtifactsScreen /> },
       {
         path: 'materials',
         element: (

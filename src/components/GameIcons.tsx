@@ -3,6 +3,7 @@ import type { CharacterData, WeaponData } from '../data'
 import { iconUrl } from '../data'
 import { cn } from './cn'
 import { elementColor } from './element'
+import { rarityBackground } from './rarity'
 
 /** Square character portrait on a soft element-tinted backdrop. */
 export function CharacterAvatar({
@@ -46,15 +47,13 @@ export function WeaponIcon({
   size?: number
   className?: string
 }) {
-  const tint =
-    weapon.rarity >= 5 ? 'var(--geo)' : weapon.rarity === 4 ? 'var(--electro)' : 'var(--hydro)'
   return (
     <div
       className={cn('shrink-0 overflow-hidden rounded-2xl', className)}
       style={{
         width: size,
         height: size,
-        background: `linear-gradient(160deg, color-mix(in srgb, ${tint} 30%, transparent), color-mix(in srgb, ${tint} 6%, transparent))`,
+        background: rarityBackground(weapon.rarity),
       }}
     >
       <img

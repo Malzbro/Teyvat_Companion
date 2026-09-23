@@ -112,6 +112,23 @@ export interface MaterialData {
   icon: string
 }
 
+/** Artifact rules and values, from Genshin Optimizer (see scripts/build-artifact-data.ts). */
+export interface ArtifactStatsData {
+  source: string
+  rarities: number[]
+  maxLevel: Record<number, number>
+  /** How many substats an artifact of this rarity can start with. */
+  substatCount: Record<number, { low: number; high: number }>
+  slotMainStats: Record<ArtifactSlot, StatKey[]>
+  substatKeys: StatKey[]
+  /** Main stat value by rarity → stat → level (fraction for % stats). */
+  mainValues: Record<number, Partial<Record<StatKey, number[]>>>
+  /** The four possible single-roll values by rarity → stat (fraction for % stats). */
+  subTiers: Record<number, Partial<Record<StatKey, number[]>>>
+  /** Every value the game can display (in display units, e.g. "3.9" or "209") → fewest rolls to reach it. */
+  subValues: Record<number, Partial<Record<StatKey, Record<string, number>>>>
+}
+
 /** Growth multipliers by level (index = level, 1..100) for each curve name. */
 export type CurveTable = Record<string, number>[]
 

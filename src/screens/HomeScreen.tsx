@@ -1,10 +1,11 @@
 import { Card, ElementBadge } from '../components'
+import { FEATURED_CHARACTER } from '../config'
 import { getCharacter, iconUrl } from '../data'
 import { PageHeader } from './PageHeader'
 
 /** Placeholder until Step 12. Shows the featured character so the look can be judged. */
 export function HomeScreen() {
-  const yelan = getCharacter('yelan')!
+  const yelan = getCharacter(FEATURED_CHARACTER)!
   return (
     <>
       <PageHeader title="Teyvat Companion" subtitle="Welcome back" />

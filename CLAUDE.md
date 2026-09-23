@@ -32,7 +32,7 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 | 2 | Data model & local storage | [x] |
 | 3 | Design system & app shell | [x] |
 | 4 | Roster | [x] |
-| 5 | Artifact inventory & quick-add | [ ] |
+| 5 | Artifact inventory & quick-add | [x] |
 | 6 | Materials planner | [ ] |
 | 7 | Stat calculator | [ ] |
 | 8 | Modifier system (sets, resonance, weapons) | [ ] |
@@ -352,6 +352,11 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 
 | Date | Step | Decision / answer |
 | --- | --- | --- |
+| 2026-09-23 | 5 | She'll enter **200+ artifacts** → dense 4-column tile grid (5 on wider phones), filters: set (picker sheet), slot, main stat (from what's in inventory), "Not equipped". |
+| 2026-09-23 | 5 | Artifact numbers come from **Genshin Optimizer** (my choice when asked; genshin-db has none): `npm run build:artifact-data` → `src/data/generated/artifact-stats.json` (main stat by rarity/level, substat roll tiers, every displayable substat value + fewest rolls, slot main-stat lists, max level, starting substat counts). Supported rarities 3–5★. |
+| 2026-09-23 | 5 | Validation (friendly messages, tests in `src/engine/artifact.test.ts`): set/rarity match, level ≤ max, main stat allowed for slot, ≤4 unique substats ≠ main, each value must be one the game can show (with "Closest: x or y" hint), total rolls ≤ starting max + one per 4 levels, and at least `low + upgrades` substats (so a +20 5★ needs 4). |
+| 2026-09-23 | 5 | Quick-add: one-screen sheet; remembers last set + rarity (`settings` table); flower/plume main stat automatic; main stat value shown; tapping a substat chip focuses its value box (decimal keyboard); "Save & next" keeps set/rarity/level and advances to the next slot. Equip/unequip from the artifact's edit sheet (moves from previous wearer, replaces that slot). Delete asks to confirm. |
+| 2026-09-23 | 5 | "Sets she farms" derived from her characters and kept in `src/config.ts` `FARMED_SETS` (listed first in the picker): Emblem, Golden Troupe, Nighttime Whispers, Scroll of Cinder City, Finale of the Deep Galleries, Fragment of Harmonic Whimsy, Noblesse, Ocean-Hued Clam. **Sandrone, Odette, Varka, Durin's sets not guessed** — to confirm in Step 8. Featured character also moved to `src/config.ts`. |
 | 2026-09-23 | 4 | No pre-filled roster or weapons: she adds her own. New characters default to **Lv 90/90, C0, talents 1/1/1**; new weapons default to their max level, R1. |
 | 2026-09-23 | 4 | Roster tab has Characters / Weapons segments, element + weapon-type filter chips, favourites pinned first (then rarity, name). Tap a card → bottom sheet to edit; removing asks for confirmation and also drops that character's team and goals (weapon/artifacts stay). Level field: stepper + quick picks + an "Ascended" toggle at caps (e.g. 80/80 vs 80/90); characters go to Lv 100, costs still stop at 90. |
 | 2026-09-23 | 4 | Equip flow lives in the character sheet: pick from owned weapons of the matching type (shows who holds it; equipping moves it), or "Add a new <type>" which creates and equips it in one go. Weapon search hides 1–2★ weapons. `cn()` now uses tailwind-merge so later classes override earlier ones. |
