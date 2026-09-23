@@ -28,7 +28,7 @@ import {
 import { reactionMultiplier, type Profile } from '../profiles'
 import { TWO_PIECE_STATS } from '../setBonus'
 import { emptyStats, type StatBlock } from '../stats'
-import { meetsER, scoreParts, type ScoreParts } from './score'
+import { isSupport, meetsER, scoreParts, supportSetWeight, type ScoreParts } from './score'
 
 export interface EvaluatorInput {
   characterKey: string
@@ -57,6 +57,9 @@ export function artifactVector(a: Artifact): StatBlock {
 }
 
 interface SetPart {
+  counts: Record<string, number>
+  /** Support set weight (1 for damage dealers). */
+  weight: number
   stats: StatBlock
   dmg: DmgBlock
   fromStats: Modifier[]
@@ -107,7 +110,13 @@ export function makeEvaluator(input: EvaluatorInput) {
       .join('|')
     const hit = setCache.get(cacheKey)
     if (hit) return hit
-    const part: SetPart = { stats: emptyStats(), dmg: emptyDmg(), fromStats: [] }
+    const part: SetPart = {
+      counts,
+      weight: supportSetWeight(input.profile, counts),
+      stats: emptyStats(),
+      dmg: emptyDmg(),
+      fromStats: [],
+    }
     for (const [key, n] of Object.entries(counts)) {
       const two = TWO_PIECE_STATS[key]
       if (n >= 2 && two) part.stats[two.key] += two.value
@@ -153,7 +162,7 @@ export function makeEvaluator(input: EvaluatorInput) {
     for (const k of Object.keys(dmg) as (keyof DmgBlock)[]) dmg[k] += part.dmg[k]
     for (const mod of part.fromStats) if (isDmgKey(mod.stat)) dmg[mod.stat] += mod.fromStats!(final)
 
-    const parts = scoreParts(input.profile, final, dmg)
+    const parts = scoreParts(input.profile, final, dmg, part.counts)
     return { ...parts, final, dmg, erOk: meetsER(input.profile, final) }
   }
 
@@ -168,6 +177,7 @@ export function makeEvaluator(input: EvaluatorInput) {
   }
   const scratch = new Float64Array(KEYS.length)
   const { profile } = input
+  const support = isSupport(profile)
   const typeKey = (
     {
       normal: 'normal_dmg_',
@@ -207,11 +217,15 @@ export function makeEvaluator(input: EvaluatorInput) {
       }
     }
     const scaling = scratch[IDX[profile.scaling]]
+    const erOk = !profile.minER || scratch[IDX.enerRech_] >= profile.minER - 1e-9
+    if (support) {
+      const heal = profile.healer ? 1 + scratch[IDX.heal_] : 1
+      return { score: scaling * heal * part.weight, erOk }
+    }
     const dmgBonus = 1 + scratch[elementIdx] + allDmg + typeDmg
     const cr = Math.min(Math.max(scratch[IDX.critRate_], 0), 1)
     const crit = 1 + cr * scratch[IDX.critDMG_]
     const reaction = reactionMultiplier(profile.reaction, scratch[IDX.eleMas], amplify)
-    const erOk = !profile.minER || scratch[IDX.enerRech_] >= profile.minER - 1e-9
     return { score: scaling * dmgBonus * crit * reaction, erOk }
   }
 

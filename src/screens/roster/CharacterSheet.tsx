@@ -23,6 +23,9 @@ import {
   saveWeapon,
 } from '../../db/roster'
 import { CharacterSearchList, WeaponSearchList } from './pickers'
+import { talentBonus } from '../../engine/talents'
+
+const NO_BONUS = { normal: 0, skill: 0, burst: 0 }
 
 type View = 'search' | 'form' | 'weapon' | 'newWeapon' | 'remove'
 
@@ -41,6 +44,7 @@ export function CharacterSheet({ existing, owned, weapons, onClose }: CharacterS
   const data = draft && getCharacter(draft.key)
 
   const update = (patch: Partial<OwnedCharacter>) => setDraft((d) => d && { ...d, ...patch })
+  const bonus = draft ? talentBonus(draft.key, draft.constellation) : NO_BONUS
 
   async function save() {
     if (!draft) return
@@ -156,6 +160,11 @@ export function CharacterSheet({ existing, owned, weapons, onClose }: CharacterS
 
           <div className="space-y-2.5">
             <h3 className="text-xs font-bold tracking-[0.18em] text-muted uppercase">Talents</h3>
+            {(bonus.normal || bonus.skill || bonus.burst) > 0 && (
+              <p className="text-xs text-muted">
+                <span className="font-bold text-hydro">Blue</span> levels include +3 from C3/C5.
+              </p>
+            )}
             {(
               [
                 ['normal', 'Normal Attack'],
@@ -170,6 +179,18 @@ export function CharacterSheet({ existing, owned, weapons, onClose }: CharacterS
                 onChange={(v) => update({ talents: { ...draft.talents, [k]: v } })}
                 min={1}
                 max={10}
+                format={(v) =>
+                  bonus[k] ? (
+                    <span
+                      className="text-hydro"
+                      aria-label={`${v + bonus[k]} (+${bonus[k]} from constellations)`}
+                    >
+                      {v + bonus[k]}
+                    </span>
+                  ) : (
+                    v
+                  )
+                }
               />
             ))}
           </div>

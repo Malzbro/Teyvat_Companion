@@ -5,12 +5,13 @@
 //  4. Score with stats, set bonuses, resonance and weapon passive.
 //  5. Return the top 3 with % vs current and a one-line reason.
 
-import { getArtifactSet, type ArtifactSlot } from '../../data'
+import type { ArtifactSlot } from '../../data'
 import { STAT_LABELS } from '../../data/stats'
 import type { Artifact } from '../../db/types'
 import { ARTIFACT_SLOTS } from '../artifact'
 import type { ConditionState } from '../modifiers'
 import { getProfile, type Profile } from '../profiles'
+import { setSummary } from '../setSummary'
 import { makeEvaluator, type Evaluation } from './evaluator'
 
 export interface OptimizeInput {
@@ -217,20 +218,12 @@ function twoPlusTwoLayouts(): ('a' | 'b' | '-')[][] {
 
 /** "4pc Golden Troupe · more HP" */
 function reasonFor(pieces: Pieces, e: Evaluation, current: Evaluation, profile: Profile): string {
-  const counts: Record<string, number> = {}
-  for (const p of pieces) if (p) counts[p.setKey] = (counts[p.setKey] ?? 0) + 1
-  const name = (k: string) => getArtifactSet(k)?.name ?? k
-  const four = Object.entries(counts).find(([, n]) => n >= 4)
-  const twos = Object.entries(counts).filter(([, n]) => n >= 2 && n < 4)
-  const sets = four
-    ? `4pc ${name(four[0])}`
-    : twos.length
-      ? twos.map(([k]) => `2pc ${name(k)}`).join(' + ')
-      : 'Mixed sets'
-
+  const sets = setSummary(pieces.map((p) => p?.setKey))
+  const support = profile.role === 'support'
   const factors = [
     ['scaling', e.scaling / (current.scaling || 1), `more ${STAT_LABELS[profile.scaling]}`],
-    ['dmg', e.dmgBonus / current.dmgBonus, 'more DMG Bonus'],
+    ['set', e.set / current.set, `wears ${sets}`],
+    ['dmg', e.dmgBonus / current.dmgBonus, support ? 'more Healing Bonus' : 'more DMG Bonus'],
     ['crit', e.crit / current.crit, 'better crit'],
     ['reaction', e.reaction / current.reaction, 'more EM for the reaction'],
   ] as const

@@ -3,16 +3,19 @@
 import type { AppDatabase } from '.'
 import type {
   Artifact,
+  Build,
   Goal,
   MaterialCount,
   OwnedCharacter,
   OwnedWeapon,
   Setting,
   Team,
+  TeamComp,
 } from './types'
 
 const APP = 'teyvat-companion'
-const FORMAT_VERSION = 1
+// v2 added builds and teamComps; v1 files still import (those tables start empty).
+const FORMAT_VERSION = 2
 
 export interface BackupFile {
   app: typeof APP
@@ -26,6 +29,8 @@ export interface BackupFile {
     goals: Goal[]
     teams: Team[]
     settings: Setting[]
+    builds: Build[]
+    teamComps: TeamComp[]
   }
 }
 
@@ -37,12 +42,13 @@ const TABLES = [
   'goals',
   'teams',
   'settings',
+  'builds',
+  'teamComps',
 ] as const
 
 export async function exportData(db: AppDatabase): Promise<BackupFile> {
-  const [characters, weapons, artifacts, materials, goals, teams, settings] = await Promise.all(
-    TABLES.map((t) => db[t].toArray()),
-  )
+  const [characters, weapons, artifacts, materials, goals, teams, settings, builds, teamComps] =
+    await Promise.all(TABLES.map((t) => db.table(t).toArray()))
   return {
     app: APP,
     formatVersion: FORMAT_VERSION,
@@ -55,6 +61,8 @@ export async function exportData(db: AppDatabase): Promise<BackupFile> {
       goals: goals as Goal[],
       teams: teams as Team[],
       settings: settings as Setting[],
+      builds: builds as Build[],
+      teamComps: teamComps as TeamComp[],
     },
   }
 }

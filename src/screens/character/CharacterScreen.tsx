@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { ArrowLeft, Lock, Pencil, Sparkles, Target } from 'lucide-react'
+import { ArrowLeft, Bookmark, Check, Lock, Pencil, Sparkles, Target } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import {
@@ -43,6 +43,9 @@ import { getProfile } from '../../engine/profiles'
 import { GoalSheet } from '../materials/GoalSheet'
 import { CharacterSheet } from '../roster/CharacterSheet'
 import { TeamPicker } from './TeamPicker'
+import { talentText } from '../../engine/talents'
+import { newBuild, saveBuild } from '../../db/builds'
+import { SavedBuilds } from './SavedBuilds'
 
 const section = 'text-xs font-bold tracking-[0.18em] text-muted uppercase'
 
@@ -56,6 +59,8 @@ export function CharacterScreen() {
   const weapons = useLiveQuery(() => db.weapons.toArray(), [])
   const artifacts = useLiveQuery(() => db.artifacts.toArray(), [])
   const team = useLiveQuery(() => db.teams.get(key).then((t) => t ?? null), [key])
+  const builds = useLiveQuery(() => db.builds.where('characterKey').equals(key).toArray(), [key])
+  const teamComps = useLiveQuery(() => db.teamComps.toArray(), [])
   const goal = useLiveQuery(
     () =>
       db.goals
@@ -154,7 +159,8 @@ export function CharacterScreen() {
   }, [optimizeInput, inputKey])
 
   if (!data) return <EmptyState title="Character not found" />
-  if (!owned || !weapons || !artifacts || team === undefined || !counts) return null
+  if (!owned || !weapons || !artifacts || team === undefined || !counts || !builds || !teamComps)
+    return null
   if (!me)
     return (
       <EmptyState
@@ -166,7 +172,9 @@ export function CharacterScreen() {
   const loading = !result || result.key !== inputKey
   const best = result?.value?.builds[0]
   const currentScore =
-    build && profile ? scoreParts(profile, build.stats.final, build.dmg).score : 0
+    build && profile
+      ? scoreParts(profile, build.stats.final, build.dmg, build.stats.setCounts).score
+      : 0
   const buildScore = best
     ? Math.min(100, (currentScore / Math.max(best.score, currentScore)) * 100)
     : currentScore > 0
@@ -206,8 +214,8 @@ export function CharacterScreen() {
               )}
             </div>
             <p className="text-sm text-muted tabular-nums">
-              Lv. {me.level} · C{me.constellation} · Talents {me.talents.normal}/{me.talents.skill}/
-              {me.talents.burst}
+              Lv. {me.level} · C{me.constellation} · Talents{' '}
+              {talentText(me.key, me.constellation, me.talents)}
             </p>
           </div>
         </div>
@@ -322,6 +330,18 @@ export function CharacterScreen() {
         </section>
       )}
 
+      {/* Saved builds */}
+      <section className="space-y-2.5">
+        <h2 className={section}>Saved builds</h2>
+        <SavedBuilds
+          me={me}
+          builds={builds}
+          artifacts={artifacts}
+          weapons={weapons}
+          teams={teamComps}
+        />
+      </section>
+
       {/* Best builds */}
       <section className="space-y-2.5">
         <h2 className={section}>Best builds</h2>
@@ -348,6 +368,8 @@ export function CharacterScreen() {
                   artifacts={artifacts}
                   owned={owned}
                   characterKey={key}
+                  weaponId={me.weaponId}
+                  savedCount={builds.length}
                   minER={profile?.minER}
                 />
               ))}
@@ -453,6 +475,8 @@ function BuildCard({
   artifacts,
   owned,
   characterKey,
+  weaponId,
+  savedCount,
   minER,
 }: {
   rank: number
@@ -460,9 +484,12 @@ function BuildCard({
   artifacts: Artifact[]
   owned: { key: string; artifactIds: Record<ArtifactSlot, string | null> }[]
   characterKey: string
+  weaponId: string | null
+  savedCount: number
   minER?: number
 }) {
   const [busy, setBusy] = useState(false)
+  const [saved, setSaved] = useState(false)
   const wearerOf = (id: string) =>
     owned.find((c) => c.key !== characterKey && Object.values(c.artifactIds).includes(id))
   const same = build.swaps.length === 0
@@ -485,6 +512,15 @@ function BuildCard({
     } finally {
       setBusy(false)
     }
+  }
+
+  async function saveAsBuild() {
+    const artifactIds = Object.fromEntries(
+      ARTIFACT_SLOTS.map((s) => [s, build.pieces[s] ?? null]),
+    ) as Record<ArtifactSlot, string | null>
+    const name = `${build.reason.split(' · ')[0]}`.slice(0, 30) || `Build ${savedCount + 1}`
+    await saveBuild(newBuild({ key: characterKey, weaponId, artifactIds }, name))
+    setSaved(true)
   }
 
   return (
@@ -536,11 +572,23 @@ function BuildCard({
         </div>
       )}
       {!same && (
-        <Button block variant={better ? 'primary' : 'secondary'} onClick={equip} disabled={busy}>
-          {busy
-            ? 'Equipping…'
-            : `Equip (${build.swaps.length} ${build.swaps.length === 1 ? 'swap' : 'swaps'})`}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="secondary"
+            onClick={saveAsBuild}
+            disabled={saved}
+            aria-label="Save as build"
+            className="shrink-0"
+          >
+            {saved ? <Check size={16} /> : <Bookmark size={16} />}
+            {saved ? 'Saved' : 'Save'}
+          </Button>
+          <Button block variant={better ? 'primary' : 'secondary'} onClick={equip} disabled={busy}>
+            {busy
+              ? 'Equipping…'
+              : `Equip (${build.swaps.length} ${build.swaps.length === 1 ? 'swap' : 'swaps'})`}
+          </Button>
+        </div>
       )}
     </Card>
   )

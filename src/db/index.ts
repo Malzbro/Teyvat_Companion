@@ -1,12 +1,14 @@
 import { Dexie, type EntityTable } from 'dexie'
 import type {
   Artifact,
+  Build,
   Goal,
   MaterialCount,
   OwnedCharacter,
   OwnedWeapon,
   Setting,
   Team,
+  TeamComp,
 } from './types'
 
 export type * from './types'
@@ -19,6 +21,8 @@ export class AppDatabase extends Dexie {
   goals!: EntityTable<Goal, 'id'>
   teams!: EntityTable<Team, 'characterKey'>
   settings!: EntityTable<Setting, 'key'>
+  builds!: EntityTable<Build, 'id'>
+  teamComps!: EntityTable<TeamComp, 'id'>
 
   constructor(name = 'teyvat-companion') {
     super(name)
@@ -30,6 +34,10 @@ export class AppDatabase extends Dexie {
       goals: 'id, characterKey',
       teams: 'characterKey',
       settings: 'key',
+    })
+    this.version(2).stores({
+      builds: 'id, characterKey',
+      teamComps: 'id',
     })
   }
 }

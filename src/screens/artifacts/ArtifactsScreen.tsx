@@ -3,7 +3,14 @@ import { ChevronDown, Flower2, Plus } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { ArtifactTile, Button, Chip, EmptyState, Sheet } from '../../components'
 import { FARMED_SETS } from '../../config'
-import { getArtifactSet, getCharacter, iconUrl, type ArtifactSlot, type StatKey } from '../../data'
+import {
+  getArtifactSet,
+  getCharacter,
+  iconUrl,
+  type ArtifactSetData,
+  type ArtifactSlot,
+  type StatKey,
+} from '../../data'
 import { STAT_SHORT } from '../../data/stats'
 import { db, type Artifact } from '../../db'
 import { ARTIFACT_SLOTS, SLOT_LABELS } from '../../engine/artifact'
@@ -53,9 +60,14 @@ export function ArtifactsScreen() {
       (a, b) =>
         ARTIFACT_SLOTS.indexOf(a.slot) - ARTIFACT_SLOTS.indexOf(b.slot) ||
         b.rarity - a.rarity ||
-        b.level - a.level ||
-        a.setKey.localeCompare(b.setKey),
+        b.level - a.level,
     )
+
+  // Grouped by set, like the game: sets by name, pieces by slot.
+  const groups = [...new Set(shown.map((a) => a.setKey))]
+    .map((key) => ({ set: getArtifactSet(key), items: shown.filter((a) => a.setKey === key) }))
+    .filter((g): g is { set: ArtifactSetData; items: Artifact[] } => !!g.set)
+    .sort((a, b) => a.set.name.localeCompare(b.set.name))
 
   const filtered = !!(setFilter || slotFilter || mainFilter || unequippedOnly)
   const filterSet = setFilter ? getArtifactSet(setFilter) : undefined
@@ -131,24 +143,35 @@ export function ArtifactsScreen() {
 
       <div className="mt-4">
         {shown.length > 0 ? (
-          <ul className="grid grid-cols-4 gap-2 min-[420px]:grid-cols-5">
-            {shown.map((a) => {
-              const set = getArtifactSet(a.setKey)
-              const wearerKey = wearerOf.get(a.id)
-              if (!set) return null
-              return (
-                <li key={a.id}>
-                  <ArtifactTile
-                    artifact={a}
-                    set={set}
-                    wearer={wearerKey ? getCharacter(wearerKey) : undefined}
-                    onClick={() => setOpen({ kind: 'artifact', existing: a })}
-                    className="w-full"
-                  />
-                </li>
-              )
-            })}
-          </ul>
+          <div className="space-y-5">
+            {groups.map(({ set, items }) => (
+              <section key={set.key} aria-label={set.name}>
+                <h2 className="mb-2 flex items-center gap-2 text-sm font-bold">
+                  <img src={iconUrl(set.icons.flower)} alt="" className="size-6" />
+                  <span className="min-w-0 truncate">{set.name}</span>
+                  <span className="ml-auto shrink-0 text-xs font-semibold text-faint">
+                    {items.length}
+                  </span>
+                </h2>
+                <ul className="grid grid-cols-4 gap-2 min-[420px]:grid-cols-5">
+                  {items.map((a) => {
+                    const wearerKey = wearerOf.get(a.id)
+                    return (
+                      <li key={a.id}>
+                        <ArtifactTile
+                          artifact={a}
+                          set={set}
+                          wearer={wearerKey ? getCharacter(wearerKey) : undefined}
+                          onClick={() => setOpen({ kind: 'artifact', existing: a })}
+                          className="w-full"
+                        />
+                      </li>
+                    )
+                  })}
+                </ul>
+              </section>
+            ))}
+          </div>
         ) : filtered ? (
           <EmptyState icon={Flower2} title="Nothing matches" message="Try clearing a filter." />
         ) : (

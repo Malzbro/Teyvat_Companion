@@ -26,6 +26,7 @@ import {
 } from '../../engine/materials'
 import { PageHeader } from '../PageHeader'
 import { GoalSheet } from './GoalSheet'
+import { talentText } from '../../engine/talents'
 
 type Open = { existing?: Goal }
 
@@ -115,10 +116,9 @@ export function MaterialsScreen() {
                         </p>
                       </div>
                       <p className="truncate text-xs text-muted tabular-nums">
-                        Lv {current.level} → {goal.targetLevel} · {current.talents.normal}/
-                        {current.talents.skill}/{current.talents.burst} →{' '}
-                        {goal.targetTalents.normal}/{goal.targetTalents.skill}/
-                        {goal.targetTalents.burst}
+                        Lv {current.level} → {goal.targetLevel} ·{' '}
+                        {talentText(current.key, current.constellation, current.talents)} →{' '}
+                        {talentText(current.key, current.constellation, goal.targetTalents)}
                       </p>
                       <ProgressBar value={pct} max={1} />
                     </div>

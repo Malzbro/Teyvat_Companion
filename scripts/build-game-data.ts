@@ -16,6 +16,7 @@ import type {
   MaterialCost,
   MaterialData,
   StatKey,
+  TalentKind,
   WeaponData,
   WeaponType,
   Weekday,
@@ -76,6 +77,26 @@ function clean(text: string | undefined): string {
     .trim()
 }
 
+const plain = (text: string | undefined) =>
+  clean(text).replace(/\*\*/g, '').replace(/\s+/g, ' ').toLowerCase()
+
+/** Which talent a "+3 talent levels" constellation boosts, read from its text (null if none). */
+function boostedTalent(talents: any, text: string | undefined): TalentKind | null {
+  const d = plain(text)
+  if (!/by 3/.test(d)) return null
+  const kinds: [TalentKind, string][] = [
+    ['normal', 'combat1'],
+    ['skill', 'combat2'],
+    ['burst', 'combat3'],
+  ]
+  const byName = kinds.filter(([, f]) => talents[f]?.name && d.includes(plain(talents[f].name)))
+  if (byName.length === 1) return byName[0][0]
+  if (d.includes('normal attack')) return 'normal'
+  if (d.includes('elemental skill')) return 'skill'
+  if (d.includes('elemental burst')) return 'burst'
+  return null
+}
+
 const materialIds = new Set<number>()
 function costs(list: { id: number; count: number }[] | undefined): MaterialCost[] {
   return (list ?? []).map(({ id, count }) => {
@@ -120,6 +141,10 @@ for (const [key, c] of Object.entries<any>(en.characters)) {
     ascensionCosts: [1, 2, 3, 4, 5, 6].map((n) => costs(c.costs?.[`ascend${n}`])),
     talentCosts: [2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => costs(t.costs?.[`lvl${n}`])),
     talentNames: { normal: t.combat1.name, skill: t.combat2.name, burst: t.combat3.name },
+    talentBoosts: {
+      c3: boostedTalent(t, en.constellations[key]?.c3?.description),
+      c5: boostedTalent(t, en.constellations[key]?.c5?.description),
+    },
     icons: {
       icon: img.filename_icon,
       side: img.filename_sideIcon,

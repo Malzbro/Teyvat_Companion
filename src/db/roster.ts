@@ -35,12 +35,16 @@ export async function saveCharacter(character: OwnedCharacter, db: AppDatabase =
   await db.characters.put(character)
 }
 
-/** Removes a character with its team and goals. Its weapon and artifacts stay in the inventory. */
+/**
+ * Removes a character with its team, goals and saved builds. Its weapon and artifacts stay in
+ * the inventory; team comps keep the slot (shown as not in the roster).
+ */
 export async function removeCharacter(key: string, db: AppDatabase = defaultDb) {
-  await db.transaction('rw', [db.characters, db.teams, db.goals], async () => {
+  await db.transaction('rw', [db.characters, db.teams, db.goals, db.builds], async () => {
     await db.characters.delete(key)
     await db.teams.delete(key)
     await db.goals.where('characterKey').equals(key).delete()
+    await db.builds.where('characterKey').equals(key).delete()
   })
 }
 

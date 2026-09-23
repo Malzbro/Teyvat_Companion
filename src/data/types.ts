@@ -44,6 +44,8 @@ export interface CharacterAscensionPhase {
   stat: number
 }
 
+export type TalentKind = 'normal' | 'skill' | 'burst'
+
 export interface CharacterData {
   key: string
   id: number
@@ -63,6 +65,8 @@ export interface CharacterData {
   /** Index 0 = cost of talent level 1 → 2, up to 9 → 10. Same for all three talents. */
   talentCosts: MaterialCost[][]
   talentNames: { normal: string; skill: string; burst: string }
+  /** The talent that C3 and C5 raise by 3 levels (null if the constellation doesn't). */
+  talentBoosts: { c3: TalentKind | null; c5: TalentKind | null }
   icons: { icon: string; side: string; card: string; splash: string }
 }
 

@@ -1,4 +1,5 @@
 import { Minus, Plus } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { cn } from './cn'
 
 interface StepperProps {
@@ -9,7 +10,7 @@ interface StepperProps {
   max?: number
   step?: number
   /** Formats the displayed value, e.g. v => `C${v}`. */
-  format?: (value: number) => string
+  format?: (value: number) => ReactNode
   className?: string
 }
 

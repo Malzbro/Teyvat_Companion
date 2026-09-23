@@ -79,6 +79,29 @@ export interface Team {
   teammates: string[]
 }
 
+/** A saved loadout: a weapon and five artifacts, e.g. "Main DPS". Pieces can be shared between builds. */
+export interface Build {
+  id: string
+  characterKey: string
+  name: string
+  weaponId: string | null
+  artifactIds: Record<ArtifactSlot, string | null>
+  /** ISO date string. */
+  createdAt: string
+}
+
+/** A named party of up to 4 on the Teams page. The same character can be in many teams. */
+export interface TeamComp {
+  id: string
+  name: string
+  /** Up to 4 members; buildId null = whatever they have equipped. */
+  members: { characterKey: string; buildId: string | null }[]
+  /** Where a suggested team came from (guide name), if it was copied from one. */
+  source?: string
+  /** ISO date string. */
+  createdAt: string
+}
+
 /** Small key/value app settings (theme, last-used artifact set, …). */
 export interface Setting {
   key: string

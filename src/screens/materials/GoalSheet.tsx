@@ -20,6 +20,7 @@ import {
 } from '../../db'
 import { removeGoal, saveGoal } from '../../db/goals'
 import { GOAL_MAX_LEVEL } from '../../engine/materials'
+import { talentBonus, talentText } from '../../engine/talents'
 
 type View = 'pick' | 'form' | 'remove'
 
@@ -63,6 +64,9 @@ export function GoalSheet({
   const [error, setError] = useState('')
 
   const current = owned.find((c) => c.key === characterKey)
+  const bonus = current
+    ? talentBonus(current.key, current.constellation)
+    : { normal: 0, skill: 0, burst: 0 }
   const data = getCharacter(characterKey)
   const weapon = current?.weaponId ? weapons.find((w) => w.id === current.weaponId) : undefined
   const weaponData = weapon && getWeapon(weapon.key)
@@ -150,7 +154,7 @@ export function GoalSheet({
                     <span className="flex-1">
                       <span className="block font-bold">{data.name}</span>
                       <span className="text-sm text-muted tabular-nums">
-                        Lv. {c.level} · {c.talents.normal}/{c.talents.skill}/{c.talents.burst}
+                        Lv. {c.level} · {talentText(c.key, c.constellation, c.talents)}
                       </span>
                     </span>
                   </button>
@@ -177,8 +181,8 @@ export function GoalSheet({
             <div className="space-y-1">
               <ElementBadge element={data.element} />
               <p className="text-sm text-muted tabular-nums">
-                Now Lv. {current.level} · Talents {current.talents.normal}/{current.talents.skill}/
-                {current.talents.burst}
+                Now Lv. {current.level} · Talents{' '}
+                {talentText(current.key, current.constellation, current.talents)}
               </p>
             </div>
           </div>
@@ -211,6 +215,18 @@ export function GoalSheet({
                 onChange={(v) => setTargetTalents({ ...talents, [k]: v })}
                 min={current.talents[k]}
                 max={10}
+                format={(v) =>
+                  bonus[k] ? (
+                    <span
+                      className="text-hydro"
+                      aria-label={`${v + bonus[k]} (+${bonus[k]} from constellations)`}
+                    >
+                      {v + bonus[k]}
+                    </span>
+                  ) : (
+                    v
+                  )
+                }
               />
             ))}
           </div>

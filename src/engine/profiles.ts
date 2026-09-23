@@ -23,6 +23,8 @@ export interface Profile {
   reaction: Reaction
   /** Minimum Energy Recharge as a fraction (1.4 = 140%). */
   minER?: number
+  /** Supports only: Healing Bonus counts towards the score. */
+  healer?: boolean
   /** True for the placeholder profile made from the element only. */
   generic?: boolean
 }
@@ -152,6 +154,7 @@ export const PROFILES: Record<string, Profile> = {
     sands: ['enerRech_', 'hp_'],
     goblet: ['hp_'],
     circlet: ['heal_'],
+    healer: true,
     sets: { fourPiece: ['noblesseoblige'], twoPlusTwo: [] },
     reaction: none,
     minER: 2.0,
@@ -164,6 +167,7 @@ export const PROFILES: Record<string, Profile> = {
     sands: ['atk_'],
     goblet: ['atk_'],
     circlet: ['heal_'],
+    healer: true,
     sets: {
       fourPiece: ['oceanhuedclam'],
       twoPlusTwo: [['noblesseoblige', 'tenacityofthemillelith']],

@@ -17,7 +17,6 @@ interface TeamPickerProps {
 export function TeamPicker({ characterKey, teammates, owned, active, onChange }: TeamPickerProps) {
   const [picking, setPicking] = useState<number | null>(null)
   const slots = [0, 1, 2].map((i) => (teammates[i] ? getCharacter(teammates[i]) : undefined))
-  const activeIds = new Set(active.map((r) => r.id))
   const candidates = owned
     .filter((c) => c.key !== characterKey && !teammates.includes(c.key))
     .map((c) => getCharacter(c.key))
@@ -55,31 +54,7 @@ export function TeamPicker({ characterKey, teammates, owned, active, onChange }:
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-1.5" aria-label="Elemental resonance">
-        {Object.values(RESONANCES).map((r) => {
-          const on = activeIds.has(r.id)
-          const color = r.elements.length === 1 ? elementColor(r.elements[0]) : 'var(--mint)'
-          return (
-            <span
-              key={r.id}
-              title={r.summary}
-              className={cn(
-                'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold transition',
-                on ? 'shadow-[0_0_16px_-4px_currentColor]' : 'opacity-35',
-              )}
-              style={{
-                color: on ? color : 'var(--text-faint)',
-                backgroundColor: on
-                  ? `color-mix(in srgb, ${color} 16%, transparent)`
-                  : 'var(--surface)',
-              }}
-            >
-              {r.elements.length === 1 && <ElementIcon element={r.elements[0]} size={12} />}
-              {r.name}
-            </span>
-          )
-        })}
-      </div>
+      <ResonanceBadges active={active} />
       {teammates.length < 3 && (
         <p className="text-xs text-faint">Resonance needs a full party of four.</p>
       )}
@@ -124,6 +99,46 @@ export function TeamPicker({ characterKey, teammates, owned, active, onChange }:
           </ul>
         </Sheet>
       )}
+    </div>
+  )
+}
+
+/** All resonances as small badges; the active ones light up. */
+export function ResonanceBadges({
+  active,
+  onlyActive,
+}: {
+  active: Resonance[]
+  onlyActive?: boolean
+}) {
+  const activeIds = new Set(active.map((r) => r.id))
+  return (
+    <div className="flex flex-wrap gap-1.5" aria-label="Elemental resonance">
+      {Object.values(RESONANCES)
+        .filter((r) => !onlyActive || activeIds.has(r.id))
+        .map((r) => {
+          const on = activeIds.has(r.id)
+          const color = r.elements.length === 1 ? elementColor(r.elements[0]) : 'var(--mint)'
+          return (
+            <span
+              key={r.id}
+              title={r.summary}
+              className={cn(
+                'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold transition',
+                on ? 'shadow-[0_0_16px_-4px_currentColor]' : 'opacity-35',
+              )}
+              style={{
+                color: on ? color : 'var(--text-faint)',
+                backgroundColor: on
+                  ? `color-mix(in srgb, ${color} 16%, transparent)`
+                  : 'var(--surface)',
+              }}
+            >
+              {r.elements.length === 1 && <ElementIcon element={r.elements[0]} size={12} />}
+              {r.name}
+            </span>
+          )
+        })}
     </div>
   )
 }

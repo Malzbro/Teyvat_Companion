@@ -7,6 +7,7 @@ import { MaterialsScreen } from './screens/materials/MaterialsScreen'
 import { RosterScreen } from './screens/roster/RosterScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
 import { StyleguideScreen } from './screens/StyleguideScreen'
+import { TeamsScreen } from './screens/teams/TeamsScreen'
 
 export const routes: RouteObject[] = [
   {
@@ -15,6 +16,7 @@ export const routes: RouteObject[] = [
       { index: true, element: <HomeScreen /> },
       { path: 'roster', element: <RosterScreen /> },
       { path: 'character/:key', element: <CharacterScreen /> },
+      { path: 'teams', element: <TeamsScreen /> },
       { path: 'artifacts', element: <ArtifactsScreen /> },
       { path: 'materials', element: <MaterialsScreen /> },
       { path: 'settings', element: <SettingsScreen /> },
