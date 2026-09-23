@@ -10,7 +10,13 @@ import {
   ProgressBar,
   rarityBackground,
 } from '../components'
-import { FEATURED_CHARACTER, RESIN_PER_DAY, SERVER_REGION, WORLD_LEVEL } from '../config'
+import {
+  FEATURED_CHARACTER,
+  RESIN_PER_DAY,
+  SERVER_REGION,
+  WELCOME_MESSAGE,
+  WORLD_LEVEL,
+} from '../config'
 import { getCharacter, iconUrl, type MaterialData } from '../data'
 import { db } from '../db'
 import {
@@ -22,6 +28,7 @@ import {
   serverWeekday,
 } from '../engine/farming'
 import { needsFor, progress, sumNeeds } from '../engine/materials'
+import { HowToCard } from './HowToCard'
 import { PageHeader } from './PageHeader'
 
 const section = 'text-xs font-bold tracking-[0.18em] text-muted uppercase'
@@ -105,6 +112,8 @@ export function HomeScreen() {
         }
       />
 
+      <p className="-mt-3 text-sm text-accent">{WELCOME_MESSAGE.home}</p>
+
       <Card element={featured.element} flush>
         <div className="relative h-44 overflow-hidden">
           <img
@@ -129,6 +138,8 @@ export function HomeScreen() {
           )}
         </div>
       </Card>
+
+      <HowToCard />
 
       {ready && goals!.length === 0 && (
         <Card>

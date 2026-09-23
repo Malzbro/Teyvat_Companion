@@ -1,6 +1,7 @@
 import { Boxes, Flower2, House, Users, type LucideIcon } from 'lucide-react'
 import { NavLink, Outlet, useLocation } from 'react-router'
 import { cn } from './components'
+import { Welcome } from './screens/Welcome'
 
 const tabs: { to: string; label: string; icon: LucideIcon }[] = [
   { to: '/', label: 'Home', icon: House },
@@ -20,6 +21,7 @@ export function AppShell() {
         <Outlet />
       </main>
       <TabBar />
+      <Welcome />
     </div>
   )
 }

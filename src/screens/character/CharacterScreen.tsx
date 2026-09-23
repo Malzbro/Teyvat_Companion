@@ -337,17 +337,20 @@ export function CharacterScreen() {
           />
         ) : (
           <div className={cn('space-y-3 transition-opacity', loading && 'opacity-60')}>
-            {result.value.builds.map((b, i) => (
-              <BuildCard
-                key={JSON.stringify(b.pieces)}
-                rank={i + 1}
-                build={b}
-                artifacts={artifacts}
-                owned={owned}
-                characterKey={key}
-                minER={profile?.minER}
-              />
-            ))}
+            {result.value.builds
+              // Only her current build and better ones are worth showing.
+              .filter((b) => b.swaps.length === 0 || b.gain === null || b.gain > 0.05)
+              .map((b, i) => (
+                <BuildCard
+                  key={JSON.stringify(b.pieces)}
+                  rank={i + 1}
+                  build={b}
+                  artifacts={artifacts}
+                  owned={owned}
+                  characterKey={key}
+                  minER={profile?.minER}
+                />
+              ))}
           </div>
         )}
       </section>

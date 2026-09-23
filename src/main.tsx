@@ -4,9 +4,13 @@ import './index.css'
 import App from './App.tsx'
 import { fallbackIconUrl } from './data'
 import { registerSW } from 'virtual:pwa-register'
+import { seedIfFirstRun } from './seed'
 
 // Offline support: the service worker updates itself in the background.
 registerSW({ immediate: true })
+
+// First open on this phone: add her characters and Yelan's build.
+void seedIfFirstRun()
 
 // Some icons are missing from Enka's CDN; retry any failed game icon from the fallback CDN.
 document.addEventListener(

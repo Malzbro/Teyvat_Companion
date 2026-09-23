@@ -85,6 +85,11 @@ export function optimize(input: OptimizeInput): OptimizeResult {
   ) as Record<ArtifactSlot, Artifact[]>
   const top = (slot: ArtifactSlot, n: number, setKey?: string) =>
     (setKey ? bySlot[slot].filter((a) => a.setKey === setKey) : bySlot[slot]).slice(0, n)
+  /** Pieces of a set for a slot, or her best pieces if she has none of that set there. */
+  const topOr = (slot: ArtifactSlot, n: number, setKey: string) => {
+    const own = top(slot, n, setKey)
+    return own.length ? own : top(slot, n)
+  }
 
   // Keep some high-ER pieces around so ER minimums can be met.
   const erPieces = (slot: ArtifactSlot) =>
@@ -133,7 +138,11 @@ export function optimize(input: OptimizeInput): OptimizeResult {
 
   // 4pc of each candidate set, with the off-piece in any slot (or all five in the set).
   for (const setKey of profile.sets.fourPiece) {
-    const inSet = ARTIFACT_SLOTS.map((s) => top(s, TOP_IN_SET, setKey))
+    // Slots with no piece of this set fall back to her best pieces (never an empty slot).
+    const inSet = ARTIFACT_SLOTS.map((s) => {
+      const own = top(s, TOP_IN_SET, setKey)
+      return own.length ? own : overall[s]
+    })
     cartesian(inSet.map(orEmpty))
     for (let off = 0; off < 5; off++)
       cartesian(ARTIFACT_SLOTS.map((s, i) => orEmpty(i === off ? overall[s] : inSet[i])))
@@ -146,9 +155,9 @@ export function optimize(input: OptimizeInput): OptimizeResult {
         ARTIFACT_SLOTS.map((s, i) =>
           orEmpty(
             layout[i] === 'a'
-              ? top(s, TOP_PAIR, a)
+              ? topOr(s, TOP_PAIR, a)
               : layout[i] === 'b'
-                ? top(s, TOP_PAIR, b)
+                ? topOr(s, TOP_PAIR, b)
                 : top(s, TOP_PAIR),
           ),
         ),

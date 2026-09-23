@@ -33,3 +33,29 @@ export const WORLD_LEVEL = 9
 
 /** Her UID, prefilled for importing her in-game showcase from Enka.Network. */
 export const ENKA_UID = '725282297'
+
+/** Shown once on the welcome screen, and as a little line on Home. Edit freely. */
+export const WELCOME_MESSAGE = {
+  title: 'Hello, my love ♡',
+  body: 'I made this little companion just for you, so every adventure in Teyvat is a bit easier (and a bit prettier). It knows your characters and tells you what to do next. I love you so much.',
+  home: 'Made with love, just for you ♡',
+}
+
+/** Her characters, added on first open (editable defaults; Yelan is her C6 favourite). */
+export const SEED_CHARACTERS = [
+  'sandrone',
+  'odette',
+  'qiqi',
+  'yaemiko',
+  'yelan',
+  'furina',
+  'navia',
+  'skirk',
+  'citlali',
+  'xilonen',
+  'xiangling',
+  'bennett',
+  'varka',
+  'durin',
+  'clorinde',
+]

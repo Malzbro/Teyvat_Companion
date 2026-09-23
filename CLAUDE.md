@@ -42,7 +42,7 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 | 12 | Home screen & farming plan | [x] |
 | 13 | UID import via Enka (optional) | [~] built + tested with a fixture; **live import of her UID pending** (Enka returned 424 maintenance on 2026-09-23) |
 | 14 | Polish, PWA & deploy | [x] |
-| 15 | Gift prep | [ ] |
+| 15 | Gift prep | [~] built; **awaiting your test of the full flow on your phone** |
 
 ---
 
@@ -352,6 +352,9 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 
 | Date | Step | Decision / answer |
 | --- | --- | --- |
+| 2026-09-23 | 15 | Seed: **her 15 characters + Yelan's real build** (C6, favourite, Lv 90, Aqua Simulacra R4, the 5 artifacts from her screen; talents left 1/1/1 since the screen didn't show them — Enka import will fill them). Runs once per device (`seeded-v1` in localStorage), atomically, never over existing data (`src/seed.ts`). |
+| 2026-09-23 | 15 | Personal touch: **"Hello, my love ♡ … I love you so much."** on a one-time welcome screen (with a 4-line tour), plus "Made with love, just for you ♡" under the Home title. Text lives in `src/config.ts` (`WELCOME_MESSAGE`) — edit freely. Dismissible "How to use" card on Home. |
+| 2026-09-23 | 15 | Bug sweep fixes: optimizer never suggests an empty slot (falls back to her best pieces when a set has none in a slot); the character page hides alternatives worse than the current build. |
 | 2026-09-23 | 14 | **Live: https://teyvat-companion.vercel.app** (Vercel project `teyvat-companion`, scope malzbros-projects; you logged in, deploy approved). Redeploy: `npx vercel deploy --prod`. `vercel.json`: SPA rewrite for everything except `/api/`. |
 | 2026-09-23 | 14 | Icon: **original crescent moon** (pink→white) with a mint sparkle and stars on the night-sky plum — `public/icon.svg`, rendered to 192/512/maskable/apple-touch PNGs by `npm run build:icons`. |
 | 2026-09-23 | 14 | PWA via vite-plugin-pwa: manifest (standalone, portrait, theme #13101f), auto-updating service worker, whole app + game data + fonts precached (~3 MB) → works offline (checked: server stopped, routes still load); game icons from Enka/yatta cached on first view (CacheFirst, 90 days). Current Lighthouse (v12+) has no PWA category, so installability was checked directly (manifest, icons, SW, offline, HTTPS). |
