@@ -25,3 +25,6 @@ dist-ssr
 
 # Personal screenshots (contain her UID)
 screenshots/
+
+.vercel
+.env*

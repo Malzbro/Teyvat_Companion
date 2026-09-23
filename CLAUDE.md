@@ -41,7 +41,7 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 | 11 | Character page | [x] |
 | 12 | Home screen & farming plan | [x] |
 | 13 | UID import via Enka (optional) | [~] built + tested with a fixture; **live import of her UID pending** (Enka returned 424 maintenance on 2026-09-23) |
-| 14 | Polish, PWA & deploy | [ ] |
+| 14 | Polish, PWA & deploy | [x] |
 | 15 | Gift prep | [ ] |
 
 ---
@@ -352,6 +352,10 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 
 | Date | Step | Decision / answer |
 | --- | --- | --- |
+| 2026-09-23 | 14 | **Live: https://teyvat-companion.vercel.app** (Vercel project `teyvat-companion`, scope malzbros-projects; you logged in, deploy approved). Redeploy: `npx vercel deploy --prod`. `vercel.json`: SPA rewrite for everything except `/api/`. |
+| 2026-09-23 | 14 | Icon: **original crescent moon** (pink→white) with a mint sparkle and stars on the night-sky plum — `public/icon.svg`, rendered to 192/512/maskable/apple-touch PNGs by `npm run build:icons`. |
+| 2026-09-23 | 14 | PWA via vite-plugin-pwa: manifest (standalone, portrait, theme #13101f), auto-updating service worker, whole app + game data + fonts precached (~3 MB) → works offline (checked: server stopped, routes still load); game icons from Enka/yatta cached on first view (CacheFirst, 90 days). Current Lighthouse (v12+) has no PWA category, so installability was checked directly (manifest, icons, SW, offline, HTTPS). |
+| 2026-09-23 | 14 | Settings (`/settings`, gear on Home): light/dark theme, save backup, restore backup (confirm), reset everything (confirm), data credits, styleguide link. Accessibility: contrast checked for every text colour pair (all ≥ 4.5:1); light-theme pink/mint deepened to #b83f73/#217a58; faint text lightened in dark mode. |
 | 2026-09-23 | 13 | **Yes to Enka import.** Her UID **725282297** (prefilled; `ENKA_UID` in `src/config.ts`). You have a Vercel account and will log in yourself. |
 | 2026-09-23 | 13 | `api/enka/[uid].ts` (Vercel function, Web `GET` handler): validates UID, calls `https://enka.network/api/uid/<uid>` with a descriptive User-Agent, caches per UID for Enka's `ttl` (in memory + `s-maxage`). In dev, a Vite proxy stands in for it. Parser `src/engine/enka.ts`: character by genshin-db id, level/ascension from propMap 4001/1002, constellation = talentIdList length, base talent levels via Enka's `SkillOrder` (`npm run build:enka-data` → `enka.json`), weapon by id (affixMap+1 = refinement), artifacts: set id from the icon name, slot from equipType, level 1–21 → 0–20, % values ÷ 100. Traveler is skipped (and said so). |
 | 2026-09-23 | 13 | Merge rules: Import button on Roster → UID → review list (New / Changed with plain-word differences / Up to date; new+changed pre-ticked) → only ticked ones are written. Keeps favourite, lock and team; reuses her existing identical artifacts/weapons (no duplicates on re-import); slots empty in the showcase are left alone; imported artifacts skip validation (game data is trusted). |
