@@ -14,7 +14,8 @@
     "build:data": "tsx scripts/build-game-data.ts",
     "build:artifact-data": "tsx scripts/build-artifact-data.ts",
     "build:exp-data": "tsx scripts/build-exp-data.ts",
-    "build:drop-data": "tsx scripts/build-drop-data.ts"
+    "build:drop-data": "tsx scripts/build-drop-data.ts",
+    "build:enka-data": "tsx scripts/build-enka-data.ts"
   },
   "dependencies": {
     "@fontsource-variable/fraunces": "^5.3.0",

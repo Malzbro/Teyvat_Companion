@@ -40,7 +40,7 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 | 10 | Build optimizer | [x] |
 | 11 | Character page | [x] |
 | 12 | Home screen & farming plan | [x] |
-| 13 | UID import via Enka (optional) | [ ] |
+| 13 | UID import via Enka (optional) | [~] built + tested with a fixture; **live import of her UID pending** (Enka returned 424 maintenance on 2026-09-23) |
 | 14 | Polish, PWA & deploy | [ ] |
 | 15 | Gift prep | [ ] |
 
@@ -352,6 +352,9 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 
 | Date | Step | Decision / answer |
 | --- | --- | --- |
+| 2026-09-23 | 13 | **Yes to Enka import.** Her UID **725282297** (prefilled; `ENKA_UID` in `src/config.ts`). You have a Vercel account and will log in yourself. |
+| 2026-09-23 | 13 | `api/enka/[uid].ts` (Vercel function, Web `GET` handler): validates UID, calls `https://enka.network/api/uid/<uid>` with a descriptive User-Agent, caches per UID for Enka's `ttl` (in memory + `s-maxage`). In dev, a Vite proxy stands in for it. Parser `src/engine/enka.ts`: character by genshin-db id, level/ascension from propMap 4001/1002, constellation = talentIdList length, base talent levels via Enka's `SkillOrder` (`npm run build:enka-data` → `enka.json`), weapon by id (affixMap+1 = refinement), artifacts: set id from the icon name, slot from equipType, level 1–21 → 0–20, % values ÷ 100. Traveler is skipped (and said so). |
+| 2026-09-23 | 13 | Merge rules: Import button on Roster → UID → review list (New / Changed with plain-word differences / Up to date; new+changed pre-ticked) → only ticked ones are written. Keeps favourite, lock and team; reuses her existing identical artifacts/weapons (no duplicates on re-import); slots empty in the showcase are left alone; imported artifacts skip validation (game data is trusted). |
 | 2026-09-23 | 12 | Her server: **Europe** (reset 04:00 UTC+1; the game day changes then, not at midnight). She uses **all 180 resin** a day. **World Level 9** — drop data only goes to WL 8, so WL 9 uses WL 8 rates (safe, slightly pessimistic). Settings in `src/config.ts` (`SERVER_REGION`, `RESIN_PER_DAY`, `WORLD_LEVEL`). |
 | 2026-09-23 | 12 | Drop rates from **paimon.moe** (`npm run build:drop-data` → `drops.json`): Domain IV averages for talent books/weapon mats, world boss averages by WL. Resin: 20 per domain run, 40 per world boss. Materials counted in 2★ equivalents (3:1 crafting). "About N days" = domain + world-boss resin ÷ 180; weekly bosses and EXP/Mora (ley lines) are listed but not counted. |
 | 2026-09-23 | 12 | Home: greeting by time of day (no personal message yet), featured Yelan card, "Today · <weekday>" domains that help her goals (with who needs them; Sunday = all open), boss materials (world/weekly), goals with progress and day estimate. |

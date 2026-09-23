@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Heart, Plus, Sword, Users } from 'lucide-react'
+import { CloudDownload, Heart, Plus, Sword, Users } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import {
@@ -19,11 +19,14 @@ import { WEAPON_TYPES, getCharacter, getWeapon, type Element, type WeaponType } 
 import { db, type OwnedCharacter, type OwnedWeapon } from '../../db'
 import { PageHeader } from '../PageHeader'
 import { CharacterSheet } from './CharacterSheet'
+import { ImportSheet } from './ImportSheet'
 import { WeaponSheet } from './WeaponSheet'
 
 type Tab = 'characters' | 'weapons'
 type Open =
-  { kind: 'character'; existing?: OwnedCharacter } | { kind: 'weapon'; existing?: OwnedWeapon }
+  | { kind: 'character'; existing?: OwnedCharacter }
+  | { kind: 'weapon'; existing?: OwnedWeapon }
+  | { kind: 'import' }
 
 const toggle = <T,>(list: T[], item: T) =>
   list.includes(item) ? list.filter((x) => x !== item) : [...list, item]
@@ -71,13 +74,23 @@ export function RosterScreen() {
         title="Roster"
         subtitle={isCharacters ? `${owned.length} characters` : `${weapons.length} weapons`}
         action={
-          <Button
-            size="sm"
-            onClick={() => setOpen({ kind: isCharacters ? 'character' : 'weapon' })}
-            aria-label={isCharacters ? 'Add character' : 'Add weapon'}
-          >
-            <Plus size={16} strokeWidth={3} /> Add
-          </Button>
+          <div className="flex gap-1.5">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setOpen({ kind: 'import' })}
+              aria-label="Import from the game"
+            >
+              <CloudDownload size={16} /> Import
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => setOpen({ kind: isCharacters ? 'character' : 'weapon' })}
+              aria-label={isCharacters ? 'Add character' : 'Add weapon'}
+            >
+              <Plus size={16} strokeWidth={3} /> Add
+            </Button>
+          </div>
         }
       />
 
@@ -219,6 +232,7 @@ export function RosterScreen() {
           onClose={() => setOpen(null)}
         />
       )}
+      {open?.kind === 'import' && <ImportSheet onClose={() => setOpen(null)} />}
       {open?.kind === 'weapon' && (
         <WeaponSheet existing={open.existing} owned={owned} onClose={() => setOpen(null)} />
       )}

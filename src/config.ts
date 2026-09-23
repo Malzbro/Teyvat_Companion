@@ -30,3 +30,6 @@ export const RESIN_PER_DAY = 180
  * (a safe, slightly pessimistic estimate).
  */
 export const WORLD_LEVEL = 9
+
+/** Her UID, prefilled for importing her in-game showcase from Enka.Network. */
+export const ENKA_UID = '725282297'
