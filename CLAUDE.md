@@ -31,7 +31,7 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 | 1 | Game data layer | [x] |
 | 2 | Data model & local storage | [x] |
 | 3 | Design system & app shell | [x] |
-| 4 | Roster | [ ] |
+| 4 | Roster | [x] |
 | 5 | Artifact inventory & quick-add | [ ] |
 | 6 | Materials planner | [ ] |
 | 7 | Stat calculator | [ ] |
@@ -352,6 +352,9 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 
 | Date | Step | Decision / answer |
 | --- | --- | --- |
+| 2026-09-23 | 4 | No pre-filled roster or weapons: she adds her own. New characters default to **Lv 90/90, C0, talents 1/1/1**; new weapons default to their max level, R1. |
+| 2026-09-23 | 4 | Roster tab has Characters / Weapons segments, element + weapon-type filter chips, favourites pinned first (then rarity, name). Tap a card → bottom sheet to edit; removing asks for confirmation and also drops that character's team and goals (weapon/artifacts stay). Level field: stepper + quick picks + an "Ascended" toggle at caps (e.g. 80/80 vs 80/90); characters go to Lv 100, costs still stop at 90. |
+| 2026-09-23 | 4 | Equip flow lives in the character sheet: pick from owned weapons of the matching type (shows who holds it; equipping moves it), or "Add a new <type>" which creates and equips it in one go. Weapon search hides 1–2★ weapons. `cn()` now uses tailwind-merge so later classes override earlier ones. |
 | 2026-09-23 | 3 | Vibe: **dreamy / soft**. Her colours: **pink and green**; favourite element **Cryo**; favourite character **Yelan (C6)**, featured on Home. App name stays **Teyvat Companion**, no personal message yet (revisit in Step 15). Styleguide approved on phone. |
 | 2026-09-23 | 3 | Design: dark "night sky" default (plum `#13101f`, soft pink/mint glows, faint stars) + light theme. Accent pink `--accent`, secondary mint `--mint` (also the "enough/complete" colour). Fonts self-hosted (offline-ready): Nunito (UI) + Fraunces (display). Tokens are CSS vars in `src/index.css`, exposed to Tailwind via `@theme inline` (`bg-surface`, `text-muted`, `text-accent`, `border-line`…). Element glyphs are original simple SVGs (no game art). |
 | 2026-09-23 | 3 | Theme stored in `localStorage` (not Dexie) so `index.html` applies it before first paint. Routing: `react-router` v8, routes in `src/routes.tsx`. Character images come from Enka's CDN (splash used on the Home card). |

@@ -14,6 +14,7 @@ import type {
   MaterialData,
   StatKey,
   WeaponData,
+  WeaponType,
 } from './types'
 
 export type * from './types'
@@ -36,6 +37,11 @@ export const getWeapon = (key: string) => weaponMap.get(key)
 export const getArtifactSet = (key: string) => artifactSetMap.get(key)
 export const getMaterial = (id: number) => materialMap.get(id)
 
+export const WEAPON_TYPES: WeaponType[] = ['Sword', 'Claymore', 'Polearm', 'Bow', 'Catalyst']
+
+/** Level cap of each ascension phase of a character or weapon. */
+export const levelCaps = (item: CharacterData | WeaponData) => item.ascension.map((p) => p.maxLevel)
+
 /** Every character starts with these, on top of any ascension stat. */
 export const CHARACTER_BASE_CRIT = { critRate_: 0.05, critDMG_: 0.5 } as const
 
@@ -45,11 +51,14 @@ export const MAX_LEVEL = 100
 /** Level cap for each ascension phase 0–6. */
 export const ASCENSION_CAPS = [20, 40, 50, 60, 70, 80, 90] as const
 
-/** Lowest ascension phase that allows `level` (level 20 → 0, level 21 → 1). */
-export function minAscension(level: number): number {
-  const i = ASCENSION_CAPS.findIndex((cap) => level <= cap)
-  return i === -1 ? ASCENSION_CAPS.length - 1 : i
+/** Lowest ascension phase whose cap allows `level`, given each phase's level cap. */
+export function phaseForLevel(level: number, caps: readonly number[]): number {
+  const i = caps.findIndex((cap) => level <= cap)
+  return i === -1 ? caps.length - 1 : i
 }
+
+/** Lowest character ascension phase that allows `level` (level 20 → 0, level 21 → 1). */
+export const minAscension = (level: number) => phaseForLevel(level, ASCENSION_CAPS)
 
 function phase<T>(list: T[], ascension: number): T {
   return list[Math.max(0, Math.min(ascension, list.length - 1))]

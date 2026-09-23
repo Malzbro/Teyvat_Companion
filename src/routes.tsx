@@ -1,7 +1,8 @@
-import { Boxes, Flower2, Users } from 'lucide-react'
+import { Boxes, Flower2 } from 'lucide-react'
 import { AppShell } from './AppShell'
 import { HomeScreen } from './screens/HomeScreen'
 import { PlaceholderScreen } from './screens/PlaceholderScreen'
+import { RosterScreen } from './screens/roster/RosterScreen'
 import { StyleguideScreen } from './screens/StyleguideScreen'
 import type { RouteObject } from 'react-router'
 
@@ -10,16 +11,7 @@ export const routes: RouteObject[] = [
     element: <AppShell />,
     children: [
       { index: true, element: <HomeScreen /> },
-      {
-        path: 'roster',
-        element: (
-          <PlaceholderScreen
-            title="Roster"
-            icon={Users}
-            message="Your characters and weapons will live here."
-          />
-        ),
-      },
+      { path: 'roster', element: <RosterScreen /> },
       {
         path: 'artifacts',
         element: (

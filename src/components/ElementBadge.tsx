@@ -22,6 +22,7 @@ export function ElementIcon({ element, size = 16 }: { element: Element; size?: n
       width={size}
       height={size}
       viewBox="0 0 24 24"
+      className="shrink-0"
       aria-hidden
       fill={s ? 'none' : 'currentColor'}
       stroke={s ? 'currentColor' : 'none'}
