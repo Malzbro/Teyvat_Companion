@@ -35,28 +35,29 @@ export function LevelField({ level, ascension, caps, maxLevel, onChange }: Level
         max={max}
         format={(v) => `${v}/${v > caps[caps.length - 1] ? max : caps[ascension]}`}
       />
-      <div className="flex gap-1">
+      {/* One row that scrolls sideways on narrow phones (bleeds to the sheet edge). "Ascended" comes first so it's always in view. */}
+      <div className="-mx-5 flex gap-1.5 overflow-x-auto overscroll-x-contain px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {atCap && (
+          <Chip
+            selected={ascended}
+            color="var(--mint)"
+            className="min-h-9 shrink-0 px-3"
+            onClick={() => onChange(level, ascended ? phase : phase + 1)}
+          >
+            <Sparkle size={14} /> Ascended
+          </Chip>
+        )}
         {quick.map((l) => (
           <Chip
             key={l}
             selected={level === l}
             onClick={() => setLevel(l)}
-            className="min-h-9 min-w-0 flex-1 justify-center px-0 tabular-nums"
+            className="min-h-9 min-w-11 shrink-0 justify-center px-3 tabular-nums"
           >
             {l}
           </Chip>
         ))}
       </div>
-      {atCap && (
-        <Chip
-          selected={ascended}
-          color="var(--mint)"
-          className="min-h-8 px-3"
-          onClick={() => onChange(level, ascended ? phase : phase + 1)}
-        >
-          <Sparkle size={14} /> Ascended
-        </Chip>
-      )}
     </div>
   )
 }
