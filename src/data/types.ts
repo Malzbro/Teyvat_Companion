@@ -142,6 +142,17 @@ export interface ArtifactStatsData {
   subValues: Record<number, Partial<Record<StatKey, Record<string, number>>>>
 }
 
+/** Average drops per run, from paimon.moe (see scripts/build-drop-data.ts). */
+export interface DropData {
+  source: string
+  /** Per domain tier I–IV: average count of [2★, 3★, 4★] talent books. */
+  talentDomain: number[][]
+  /** Per domain tier I–IV: average count of [2★, 3★, 4★, 5★] weapon materials. */
+  weaponDomain: number[][]
+  /** Per World Level 0–8: average [gem sliver, fragment, chunk, gemstone, boss material]. */
+  worldBoss: number[][]
+}
+
 /** Growth multipliers by level (index = level, 1..100) for each curve name. */
 export type CurveTable = Record<string, number>[]
 

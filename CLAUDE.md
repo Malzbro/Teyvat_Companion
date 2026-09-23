@@ -39,7 +39,7 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 | 9 | Character profiles | [x] |
 | 10 | Build optimizer | [x] |
 | 11 | Character page | [x] |
-| 12 | Home screen & farming plan | [ ] |
+| 12 | Home screen & farming plan | [x] |
 | 13 | UID import via Enka (optional) | [ ] |
 | 14 | Polish, PWA & deploy | [ ] |
 | 15 | Gift prep | [ ] |
@@ -352,6 +352,10 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 
 | Date | Step | Decision / answer |
 | --- | --- | --- |
+| 2026-09-23 | 12 | Her server: **Europe** (reset 04:00 UTC+1; the game day changes then, not at midnight). She uses **all 180 resin** a day. **World Level 9** — drop data only goes to WL 8, so WL 9 uses WL 8 rates (safe, slightly pessimistic). Settings in `src/config.ts` (`SERVER_REGION`, `RESIN_PER_DAY`, `WORLD_LEVEL`). |
+| 2026-09-23 | 12 | Drop rates from **paimon.moe** (`npm run build:drop-data` → `drops.json`): Domain IV averages for talent books/weapon mats, world boss averages by WL. Resin: 20 per domain run, 40 per world boss. Materials counted in 2★ equivalents (3:1 crafting). "About N days" = domain + world-boss resin ÷ 180; weekly bosses and EXP/Mora (ley lines) are listed but not counted. |
+| 2026-09-23 | 12 | Home: greeting by time of day (no personal message yet), featured Yelan card, "Today · <weekday>" domains that help her goals (with who needs them; Sunday = all open), boss materials (world/weekly), goals with progress and day estimate. |
+| 2026-09-23 | 12 | Some item icons are missing on Enka's CDN (e.g. 113056/113057); a global image-error handler retries from Project Amber (`gi.yatta.moe/assets/UI/`). |
 | 2026-09-23 | 11 | No extras: "just the plan". Route `/character/:key`; tapping a roster card opens it (Roster tab stays highlighted); the old edit sheet is behind "Edit". Sections: header (portrait, element, Lv/C/talents, weapon), Team (3 slots, all resonances shown, active ones lit), "Effects in play" (toggles/stack steppers, saved per character in `settings` as `conditions:<key>`), Current build (stats, equipped tiles, notes), Best builds (top 3, % vs current, pieces to swap and from whom, Equip), Materials (goal progress + top missing, or "Set a goal"). |
 | 2026-09-23 | 11 | **Build score** (0–100) = current build's score as a % of the best build the optimizer finds from her artifacts (100 = nothing better possible). Worse alternatives show "−x%" muted with a secondary Equip; the current build shows "Already equipped". Optimizer re-runs in the Web Worker whenever team, toggles, gear or levels change. |
 | 2026-09-23 | 11 | Perf note for Step 14: the worker bundle is ~950 KB (it includes the game data). |

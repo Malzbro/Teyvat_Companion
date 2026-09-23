@@ -18,3 +18,15 @@ export const FARMED_SETS = [
   'noblesseoblige', // Bennett
   'oceanhuedclam', // Qiqi
 ]
+
+/** Her server: sets the daily reset (04:00 server time) for domain schedules. */
+export const SERVER_REGION = 'Europe' as const
+
+/** Resin she spends a day (she uses all of it: 1 per 8 min = 180). */
+export const RESIN_PER_DAY = 180
+
+/**
+ * Her World Level. Drop data only goes to WL 8, so WL 9 uses WL 8 rates
+ * (a safe, slightly pessimistic estimate).
+ */
+export const WORLD_LEVEL = 9

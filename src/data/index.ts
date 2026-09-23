@@ -107,7 +107,16 @@ export function weaponPassiveText(weapon: WeaponData, refinement: number): strin
   return weapon.passive.template.replace(/\{(\d+)\}/g, (_, i) => values[Number(i)] ?? '')
 }
 
+const ICON_CDN = 'https://enka.network/ui/'
+/** Second source for icons Enka doesn't have (some newer items). */
+const ICON_FALLBACK_CDN = 'https://gi.yatta.moe/assets/UI/'
+
 /** URL for a game icon filename (e.g. "UI_AvatarIcon_Furina"). */
 export function iconUrl(filename: string): string {
-  return `https://enka.network/ui/${filename}.png`
+  return `${ICON_CDN}${filename}.png`
+}
+
+/** If an Enka icon fails to load, try the fallback CDN once (set up in main.tsx). */
+export function fallbackIconUrl(src: string): string | null {
+  return src.startsWith(ICON_CDN) ? src.replace(ICON_CDN, ICON_FALLBACK_CDN) : null
 }
