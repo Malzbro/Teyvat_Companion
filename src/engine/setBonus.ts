@@ -46,6 +46,8 @@ export function parseTwoPiece(text: string): { key: StatKey; value: number } | n
 }
 
 /** Set key → its always-on 2pc stat, for sets that have one. */
-export const TWO_PIECE_STATS: Record<string, { key: StatKey; value: number }> = Object.fromEntries(
-  artifactSets.map((s) => [s.key, parseTwoPiece(s.twoPiece)] as const).filter(([, bonus]) => bonus),
-)
+export const TWO_PIECE_STATS: Record<string, { key: StatKey; value: number }> = {}
+for (const s of artifactSets) {
+  const bonus = parseTwoPiece(s.twoPiece)
+  if (bonus) TWO_PIECE_STATS[s.key] = bonus
+}
