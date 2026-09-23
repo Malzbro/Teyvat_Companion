@@ -45,6 +45,8 @@ export interface StatInput {
   ascension: number
   weapon?: { data: WeaponData; level: number; ascension: number }
   artifacts: Artifact[]
+  /** Extra bonuses from modifiers (weapon passives, resonance, 4pc…), added like any other bonus. */
+  extra?: Partial<StatBlock>
 }
 
 export interface StatResult {
@@ -71,6 +73,7 @@ export function computeStats({
   ascension,
   weapon,
   artifacts,
+  extra,
 }: StatInput): StatResult {
   const own = characterBaseStats(character, level, ascension)
   const bonus = emptyStats()
@@ -98,6 +101,8 @@ export function computeStats({
     const twoPiece = TWO_PIECE_STATS[setKey]
     if (count >= 2 && twoPiece && getArtifactSet(setKey)) add(twoPiece.key, twoPiece.value)
   }
+
+  for (const [key, value] of Object.entries(extra ?? {})) add(key as StatKey, value)
 
   const base = { hp: own.hp, atk: own.atk + weaponAtk, def: own.def }
   const final: StatBlock = { ...bonus }

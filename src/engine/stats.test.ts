@@ -49,6 +49,74 @@ describe('2-piece bonuses from set text', () => {
   })
 })
 
+describe('real in-game screen: her Yelan (C6, Aqua Simulacra R4, 4pc Emblem)', () => {
+  const yelan = (
+    slot: Artifact['slot'],
+    setKey: string,
+    mainStat: Artifact['mainStat'],
+    substats: Artifact['substats'],
+  ) => piece({ slot, setKey, mainStat, substats })
+  const aqua = getWeapon('aquasimulacra')!
+  // Aqua Simulacra's always-on passive at R4, read from the data ("28%").
+  const passiveHp = Number(aqua.passive!.refinements[3][0].replace('%', '')) / 100
+
+  const { final } = computeStats({
+    character: getCharacter('yelan')!,
+    level: 90,
+    ascension: 6,
+    weapon: { data: aqua, level: 90, ascension: 6 },
+    extra: { hp_: passiveHp },
+    artifacts: [
+      yelan('flower', 'emblemofseveredfate', 'hp', [
+        { key: 'enerRech_', value: 0.065 },
+        { key: 'critDMG_', value: 0.218 },
+        { key: 'hp_', value: 0.082 },
+        { key: 'critRate_', value: 0.093 },
+      ]),
+      yelan('plume', 'emblemofseveredfate', 'atk', [
+        { key: 'critRate_', value: 0.109 },
+        { key: 'critDMG_', value: 0.187 },
+        { key: 'eleMas', value: 21 },
+        { key: 'enerRech_', value: 0.065 },
+      ]),
+      yelan('sands', 'emblemofseveredfate', 'hp_', [
+        { key: 'hp', value: 299 },
+        { key: 'critRate_', value: 0.054 },
+        { key: 'enerRech_', value: 0.11 },
+        { key: 'critDMG_', value: 0.218 },
+      ]),
+      yelan('goblet', 'heartofdepth', 'hydro_dmg_', [
+        { key: 'critRate_', value: 0.101 },
+        { key: 'def', value: 21 },
+        { key: 'critDMG_', value: 0.132 },
+        { key: 'hp_', value: 0.087 },
+      ]),
+      yelan('circlet', 'emblemofseveredfate', 'critRate_', [
+        { key: 'critDMG_', value: 0.21 },
+        { key: 'enerRech_', value: 0.117 },
+        { key: 'def_', value: 0.124 },
+        { key: 'hp', value: 478 },
+      ]),
+    ],
+  })
+
+  it('matches within ±1 for flat stats', () => {
+    expect(passiveHp).toBe(0.28)
+    expect(Math.abs(final.hp - 33229)).toBeLessThanOrEqual(1)
+    expect(Math.abs(final.atk - 1097)).toBeLessThanOrEqual(1)
+    expect(Math.abs(final.def - 637)).toBeLessThanOrEqual(1)
+    expect(final.eleMas).toBe(21)
+  })
+
+  it('matches within ±0.1% for percentages', () => {
+    // Substats are entered as shown (1 decimal), so tiny rounding differences are expected.
+    expect(Math.abs(final.critRate_ - 0.911)).toBeLessThanOrEqual(0.0011)
+    expect(Math.abs(final.critDMG_ - 2.346)).toBeLessThanOrEqual(0.0011)
+    expect(Math.abs(final.enerRech_ - 1.556)).toBeLessThanOrEqual(0.0011)
+    expect(final.hydro_dmg_).toBeCloseTo(0.466, 4)
+  })
+})
+
 describe('computeStats', () => {
   it('character + weapon only', () => {
     const { base, final } = computeStats({

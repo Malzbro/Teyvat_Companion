@@ -34,7 +34,7 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 | 4 | Roster | [x] |
 | 5 | Artifact inventory & quick-add | [x] |
 | 6 | Materials planner | [x] |
-| 7 | Stat calculator | [~] code + tests done; **awaiting a real in-game stat screen to verify** |
+| 7 | Stat calculator | [x] |
 | 8 | Modifier system (sets, resonance, weapons) | [ ] |
 | 9 | Character profiles | [ ] |
 | 10 | Build optimizer | [ ] |
@@ -352,7 +352,7 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 
 | Date | Step | Decision / answer |
 | --- | --- | --- |
-| 2026-09-23 | 7 | No real stat screen yet ("verify later"). `src/engine/stats.ts` built and tested against data + hand arithmetic; **must be checked against one real in-game screen (±1 flat, ±0.1%) before ticking Step 7.** |
+| 2026-09-23 | 7 | **Verified against her real Yelan screen** (akasha.cv/Enka card: Lv 90, C6, Aqua Simulacra R4, 4pc Emblem): HP 33,229 / ATK 1,097 / DEF 637 / EM 21 exact; CR 91.0 vs 91.1, CD 234.7 vs 234.6, ER 155.7 vs 155.6 (substat display rounding, within ±0.1%). HP only matches with Aqua Simulacra R4 always-on HP +28% → weapon always-on passives matter (Step 8). Kept as a regression test in `src/engine/stats.test.ts`. `computeStats` takes `extra` bonuses for Step 8 modifiers. Screenshots live in `screenshots/` (git-ignored: contains her UID). |
 | 2026-09-23 | 7 | Always-on 2pc bonuses are **parsed from genshin-db's 2pc text** (`src/engine/setBonus.ts`), not hand-typed: ATK/HP/DEF%, EM, ER, CRIT Rate, Healing, elemental/Physical DMG. Damage-type 2pcs (Skill/Burst/Normal DMG), shield and RES bonuses are left for Step 8. Base ER 100%, base crit 5%/50%. % stats scale only the white base (character + weapon base ATK). |
 | 2026-09-23 | 6 | Track **only goal materials**: the Materials tab lists just what active goals need, grouped (Mora & EXP, talent books, gems, boss drops, specialties, common drops, weapon mats), each with have/need bar + counter (tap the number to type; turns mint when enough). One goal per character. |
 | 2026-09-23 | 6 | Level-up EXP from **paimon.moe** (`npm run build:exp-data` → `exp.json`, cumulative EXP to Lv 90 for characters and 3/4/5★ weapons). Mora for levelling = EXP ÷ 5 (characters), ÷ 10 (weapons), as paimon.moe's calculator does. EXP book/ore values (20k/5k/1k, 10k/2k/400) parsed from genshin-db item text; the six items were added to the materials snapshot. EXP need is one bar; her books count by EXP value, with "about N more Hero's Wit". |
