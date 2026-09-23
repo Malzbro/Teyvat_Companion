@@ -34,7 +34,7 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 | 4 | Roster | [x] |
 | 5 | Artifact inventory & quick-add | [x] |
 | 6 | Materials planner | [x] |
-| 7 | Stat calculator | [ ] |
+| 7 | Stat calculator | [~] code + tests done; **awaiting a real in-game stat screen to verify** |
 | 8 | Modifier system (sets, resonance, weapons) | [ ] |
 | 9 | Character profiles | [ ] |
 | 10 | Build optimizer | [ ] |
@@ -352,6 +352,8 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 
 | Date | Step | Decision / answer |
 | --- | --- | --- |
+| 2026-09-23 | 7 | No real stat screen yet ("verify later"). `src/engine/stats.ts` built and tested against data + hand arithmetic; **must be checked against one real in-game screen (±1 flat, ±0.1%) before ticking Step 7.** |
+| 2026-09-23 | 7 | Always-on 2pc bonuses are **parsed from genshin-db's 2pc text** (`src/engine/setBonus.ts`), not hand-typed: ATK/HP/DEF%, EM, ER, CRIT Rate, Healing, elemental/Physical DMG. Damage-type 2pcs (Skill/Burst/Normal DMG), shield and RES bonuses are left for Step 8. Base ER 100%, base crit 5%/50%. % stats scale only the white base (character + weapon base ATK). |
 | 2026-09-23 | 6 | Track **only goal materials**: the Materials tab lists just what active goals need, grouped (Mora & EXP, talent books, gems, boss drops, specialties, common drops, weapon mats), each with have/need bar + counter (tap the number to type; turns mint when enough). One goal per character. |
 | 2026-09-23 | 6 | Level-up EXP from **paimon.moe** (`npm run build:exp-data` → `exp.json`, cumulative EXP to Lv 90 for characters and 3/4/5★ weapons). Mora for levelling = EXP ÷ 5 (characters), ÷ 10 (weapons), as paimon.moe's calculator does. EXP book/ore values (20k/5k/1k, 10k/2k/400) parsed from genshin-db item text; the six items were added to the materials snapshot. EXP need is one bar; her books count by EXP value, with "about N more Hero's Wit". |
 | 2026-09-23 | 6 | **Goals cap at Lv 90** (no cost data for 91–100). Current levels come from the Roster; target talents can't go below current. Optional weapon goal uses the equipped weapon. Verified: Furina 80 → 90 = ascension 6 mats + 3,423,125 EXP + 804,625 Mora (120,000 + EXP ÷ 5). |
