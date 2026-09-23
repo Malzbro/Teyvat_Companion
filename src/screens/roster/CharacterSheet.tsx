@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Heart, Plus, Sword } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Heart, Lock, Plus, Sword } from 'lucide-react'
 import { useState } from 'react'
 import {
   Button,
@@ -8,6 +8,7 @@ import {
   Sheet,
   Stars,
   Stepper,
+  Toggle,
   WeaponIcon,
   cn,
 } from '../../components'
@@ -180,6 +181,14 @@ export function CharacterSheet({ existing, owned, weapons, onClose }: CharacterS
               onClick={() => setView('weapon')}
             />
           </div>
+
+          <Toggle
+            checked={draft.locked}
+            onChange={(locked) => update({ locked })}
+            icon={<Lock size={20} />}
+            label="Lock gear"
+            description="Build suggestions for others won't take these artifacts."
+          />
 
           {existing && (
             <Button variant="ghost" block className="text-danger" onClick={() => setView('remove')}>

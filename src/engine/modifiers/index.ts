@@ -11,11 +11,15 @@ import { weaponModifiers } from './weapons'
 
 export * from './types'
 export { RESONANCES, activeResonances } from './resonance'
-export { SET_EFFECTS } from './sets'
+export { SET_EFFECTS, setModifiers } from './sets'
+export { resonanceModifiers } from './resonance'
+export { weaponModifiers } from './weapons'
+
+export const emptyDmg = (): DmgBlock => Object.fromEntries(DMG_KEYS.map((k) => [k, 0])) as DmgBlock
 
 export type DmgBlock = Record<DmgKey, number>
 
-const DMG_KEYS: DmgKey[] = [
+export const DMG_KEYS: DmgKey[] = [
   'dmg_',
   'normal_dmg_',
   'charged_dmg_',
@@ -25,7 +29,7 @@ const DMG_KEYS: DmgKey[] = [
   'amplify_dmg_',
   'transformative_dmg_',
 ]
-const isDmgKey = (k: ModStat): k is DmgKey => (DMG_KEYS as string[]).includes(k)
+export const isDmgKey = (k: ModStat): k is DmgKey => (DMG_KEYS as string[]).includes(k)
 
 /** Condition id → on/off (0/1) or stack count. Missing ids use the condition's default. */
 export type ConditionState = Record<string, number>
@@ -56,7 +60,11 @@ export interface BuildResult {
 }
 
 /** How much a modifier adds under the current toggles (0 if its conditions are off). */
-function amount(mod: Modifier, conditions: Map<string, Condition>, state: ConditionState): number {
+export function amount(
+  mod: Modifier,
+  conditions: Map<string, Condition>,
+  state: ConditionState,
+): number {
   const level = (id: string) => state[id] ?? conditions.get(id)?.default ?? 0
   if (mod.requires?.some((id) => level(id) <= 0)) return 0
   if (!mod.condition) return mod.value
@@ -79,7 +87,7 @@ export function computeBuild(input: BuildInput): BuildResult {
 
   // Pass 1: plain values → stat bonuses and damage bonuses.
   const extra: Partial<StatBlock> = {}
-  const dmg = Object.fromEntries(DMG_KEYS.map((k) => [k, 0])) as DmgBlock
+  const dmg = emptyDmg()
   const applied: AppliedModifier[] = []
   const later: Modifier[] = []
   for (const mod of all.modifiers) {

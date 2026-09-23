@@ -37,7 +37,7 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 | 7 | Stat calculator | [x] |
 | 8 | Modifier system (sets, resonance, weapons) | [x] |
 | 9 | Character profiles | [x] |
-| 10 | Build optimizer | [ ] |
+| 10 | Build optimizer | [x] |
 | 11 | Character page | [ ] |
 | 12 | Home screen & farming plan | [ ] |
 | 13 | UID import via Enka (optional) | [ ] |
@@ -352,6 +352,9 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 
 | Date | Step | Decision / answer |
 | --- | --- | --- |
+| 2026-09-23 | 10 | **Gear lock: yes.** A "Lock gear" toggle on each character (Roster sheet); a locked character's equipped artifacts are excluded when optimizing anyone else (`lockedArtifactIds`). |
+| 2026-09-23 | 10 | Optimizer (`src/engine/optimizer/`): score = scaling stat × (1 + element + all + damage-type DMG%) × (1 + min(CR,1)·CD) × reaction mult. Candidate pruning: top 6 per slot overall (+2 highest-ER pieces when a profile has an ER minimum), top 5 per slot per 4pc set, top 4 for 2+2 and the "best mix" search. Tries 4pc (all 5 or any off-piece), every 2+2 layout, and best mix. Builds under the ER minimum are only shown if nothing meets it (flagged). Returns top 3 distinct builds with % vs current, swaps and a one-line reason ("4pc Golden Troupe · more HP"). |
+| 2026-09-23 | 10 | Speed: a fast evaluator (typed arrays, cached set effects) scores combinations and is tested to match `computeBuild` exactly. Benchmark: 300 artifacts ≈ 200 ms in tests; ≈ 185 ms inside the real Web Worker in the browser (~33k combos). UI uses `optimizeInBackground()` (Web Worker; falls back to direct call in tests). |
 | 2026-09-23 | 9 | **Approved profiles** (`src/engine/profiles.ts`): Yelan HP/Burst/Hydro, sands HP%/ER, Emblem or HoD+Tenacity, ER 140%. Furina HP/Skill, goblet Hydro or HP%, Golden Troupe or HoD+Tenacity, ER 150%. Navia ATK/Skill/Geo, Nighttime Whispers, ER 120%. Skirk ATK/NA/Cryo, Finale or Blizzard, no ER min. Yae ATK/Skill/Electro, Golden Troupe or Gilded, ER 120%. Clorinde ATK/NA/Electro, Fragment of Harmonic Whimsy. Xiangling ATK/Burst/Pyro, sands ER/ATK%/EM, Emblem or Crimson Witch, **Vaporize ×1.5**, ER 170%. Supports: Citlali EM (Scroll, ER 140%), Xilonen DEF (Scroll, ER 130%), Bennett HP (Noblesse, healing circlet, ER 200%), Qiqi ATK (Ocean-Hued Clam or Noblesse+Tenacity, healing circlet, ER 130%). Crit circlet = CR or CD. |
 | 2026-09-23 | 9 | Sandrone, Odette, Varka, Durin (and anyone added later) use a **generic profile by element**: ATK, Skill, ATK% / element DMG / crit, no sets, no ER min — flagged `generic` so the UI can say so. Reaction multiplier approved: base ×1.5 or ×2.0 × (1 + 2.78·EM/(EM+1400) + reaction bonus). |
 | 2026-09-23 | 8 | **Approved set table** (numbers from each set's in-game text): Emblem (Burst DMG = 25% ER, max 75%), Golden Troupe (2pc Skill +20%; 4pc +25%, +25% off-field toggle on), Nighttime Whispers (Geo +20% after Skill on; +150% of that under Crystallize off), Finale of the Deep Galleries (0 Energy: NA/Burst +60% on), Fragment of Harmonic Whimsy (DMG +18%/stack, 3), Marechaussee (2pc NA/CA +15%; CR +12%/stack, 3), Heart of Depth (NA/CA +30% on), Blizzard (CR +20% on; Frozen +20% off), Crimson Witch (Vaporize/Melt +15%, transformative +40%, Pyro +7.5%/stack, 1), Gilded Dreams (ATK +14% per same-element / EM +50 per other-element teammate, on), Obsidian Codex (2pc DMG +15% on; 4pc CR +40% on), Noblesse (2pc Burst +20%; ATK +20% on), Tenacity (ATK +20% on). Scroll of Cinder City & Ocean-Hued Clam are notes only. Code: `src/engine/modifiers/`. |
