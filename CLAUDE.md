@@ -36,7 +36,7 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 | 6 | Materials planner | [x] |
 | 7 | Stat calculator | [x] |
 | 8 | Modifier system (sets, resonance, weapons) | [x] |
-| 9 | Character profiles | [ ] |
+| 9 | Character profiles | [x] |
 | 10 | Build optimizer | [ ] |
 | 11 | Character page | [ ] |
 | 12 | Home screen & farming plan | [ ] |
@@ -352,6 +352,8 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 
 | Date | Step | Decision / answer |
 | --- | --- | --- |
+| 2026-09-23 | 9 | **Approved profiles** (`src/engine/profiles.ts`): Yelan HP/Burst/Hydro, sands HP%/ER, Emblem or HoD+Tenacity, ER 140%. Furina HP/Skill, goblet Hydro or HP%, Golden Troupe or HoD+Tenacity, ER 150%. Navia ATK/Skill/Geo, Nighttime Whispers, ER 120%. Skirk ATK/NA/Cryo, Finale or Blizzard, no ER min. Yae ATK/Skill/Electro, Golden Troupe or Gilded, ER 120%. Clorinde ATK/NA/Electro, Fragment of Harmonic Whimsy. Xiangling ATK/Burst/Pyro, sands ER/ATK%/EM, Emblem or Crimson Witch, **Vaporize ×1.5**, ER 170%. Supports: Citlali EM (Scroll, ER 140%), Xilonen DEF (Scroll, ER 130%), Bennett HP (Noblesse, healing circlet, ER 200%), Qiqi ATK (Ocean-Hued Clam or Noblesse+Tenacity, healing circlet, ER 130%). Crit circlet = CR or CD. |
+| 2026-09-23 | 9 | Sandrone, Odette, Varka, Durin (and anyone added later) use a **generic profile by element**: ATK, Skill, ATK% / element DMG / crit, no sets, no ER min — flagged `generic` so the UI can say so. Reaction multiplier approved: base ×1.5 or ×2.0 × (1 + 2.78·EM/(EM+1400) + reaction bonus). |
 | 2026-09-23 | 8 | **Approved set table** (numbers from each set's in-game text): Emblem (Burst DMG = 25% ER, max 75%), Golden Troupe (2pc Skill +20%; 4pc +25%, +25% off-field toggle on), Nighttime Whispers (Geo +20% after Skill on; +150% of that under Crystallize off), Finale of the Deep Galleries (0 Energy: NA/Burst +60% on), Fragment of Harmonic Whimsy (DMG +18%/stack, 3), Marechaussee (2pc NA/CA +15%; CR +12%/stack, 3), Heart of Depth (NA/CA +30% on), Blizzard (CR +20% on; Frozen +20% off), Crimson Witch (Vaporize/Melt +15%, transformative +40%, Pyro +7.5%/stack, 1), Gilded Dreams (ATK +14% per same-element / EM +50 per other-element teammate, on), Obsidian Codex (2pc DMG +15% on; 4pc CR +40% on), Noblesse (2pc Burst +20%; ATK +20% on), Tenacity (ATK +20% on). Scroll of Cinder City & Ocean-Hued Clam are notes only. Code: `src/engine/modifiers/`. |
 | 2026-09-23 | 8 | Resonance needs a full party of 4 with 2+ of an element: Pyro ATK +25%, Hydro HP +25%, Cryo CR +15% (toggle on), Geo DMG +15% shielded (toggle on; enemy RES shred as note), Dendro EM +50 plus +30 (Burning/Quicken/Bloom) and +20 (Aggravate/Spread/Hyperbloom/Burgeon) toggles, on — text confirmed by her. Electro/Anemo/Protective Canopy: info only. |
 | 2026-09-23 | 8 | Sets for **Sandrone, Odette, Varka, Durin: skipped for now**. Weapon passives: **later, once she enters weapons** — but the always-on first sentence of a passive (e.g. Aqua Simulacra "HP is increased by 28%") is counted automatically, since her real Yelan HP needs it; everything else in the passive is shown as a note. Damage-type bonuses (Skill/Burst/NA DMG, all DMG, Vaporize/Melt) live in a separate `dmg` block, not on the stat screen. |
