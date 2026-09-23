@@ -28,7 +28,7 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 | Step | Name | Status |
 | --- | --- | --- |
 | 0 | Project setup | [x] |
-| 1 | Game data layer | [ ] |
+| 1 | Game data layer | [x] |
 | 2 | Data model & local storage | [ ] |
 | 3 | Design system & app shell | [ ] |
 | 4 | Roster | [ ] |
@@ -352,6 +352,12 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 
 | Date | Step | Decision / answer |
 | --- | --- | --- |
+| 2026-09-23 | 1 | Data: genshin-db 5.2.14, game data up to **v7.1**. Snapshot: 120 characters, 255 weapons, 59 artifact sets, 504 materials (only materials used in a cost). Regenerate with `npm run build:data`. |
+| 2026-09-23 | 1 | Her characters (all found in data): Sandrone, Odette, Qiqi, Yae Miko, Yelan, Furina, Navia, Skirk, Citlali, Xilonen, Xiangling, Bennett, Varka, Durin, Clorinde. Kept in `scripts/owned-characters.json`. Nothing she owns is newer than 7.1. |
+| 2026-09-23 | 1 | All characters are snapshotted (not only hers) so she can add new ones later. Travelers (Aether/Lumine/Manekin/Manekina) are skipped in v1: they have no fixed element and per-element talents. |
+| 2026-09-23 | 1 | Stats are stored compactly: base values + curve names + ascension table + a shared curve table (levels 1–100). Stat keys use GOOD format (`atk_`, `critRate_`…) and genshin-db numeric ids are kept, for Enka/GOOD import later. Ids/keys: genshin-db lowercase filename (e.g. `furina`); materials keyed by numeric id. |
+| 2026-09-23 | 1 | Limitation: stats go to Lv 100 but genshin-db has **no ascension/material costs beyond Lv 90**, and no character/weapon EXP (Hero's Wit) cost tables. Must be resolved before Step 6 (ask, don't invent). |
+| 2026-09-23 | 1 | Icons are filenames; URLs are built from Enka's CDN `https://enka.network/ui/<file>.png`. 1-piece "Prayers" sets are skipped. |
 | 2026-09-23 | 0 | Stack as scaffolded: Vite 8, React 19, TS 6, Tailwind v4 (via `@tailwindcss/vite`, no config file), Vitest 5 + jsdom + Testing Library, ESLint 10 flat config + Prettier (no semicolons, single quotes, width 100). The Vite template shipped oxlint; replaced with ESLint per plan. |
 | 2026-09-23 | 0 | App/package name: `teyvat-companion`. Node v24.16.0 / npm 11.13.0. Git initialised; commit after each step. |
 
