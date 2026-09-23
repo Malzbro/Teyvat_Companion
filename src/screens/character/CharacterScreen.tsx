@@ -46,6 +46,8 @@ import { TeamPicker } from './TeamPicker'
 import { talentText } from '../../engine/talents'
 import { newBuild, saveBuild } from '../../db/builds'
 import { SavedBuilds } from './SavedBuilds'
+import { WEAPON_GUIDES } from '../../data/weaponGuides'
+import { WeaponPicks } from './WeaponPicks'
 
 const section = 'text-xs font-bold tracking-[0.18em] text-muted uppercase'
 
@@ -327,6 +329,14 @@ export function CharacterScreen() {
               {data.name} uses a simple starting profile (ATK, Skill damage, no set picks yet).
             </p>
           )}
+        </section>
+      )}
+
+      {/* Weapons */}
+      {WEAPON_GUIDES[key] && (
+        <section className="space-y-2.5">
+          <h2 className={section}>Best weapons</h2>
+          <WeaponPicks me={me} owned={owned} weapons={weapons} />
         </section>
       )}
 

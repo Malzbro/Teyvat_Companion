@@ -104,3 +104,22 @@ describe('CharacterScreen', () => {
     expect(screen.getByText('Fervent Flames').className).toMatch(/opacity-35/)
   })
 })
+
+describe('Best weapons', () => {
+  it("lists the guide's weapons, marks her best owned one and equips it", async () => {
+    const { newWeapon, saveWeapon } = await import('../../db/roster')
+    const fav = newWeapon('favoniuswarbow')
+    await saveWeapon(fav)
+    const user = userEvent.setup()
+    render(
+      <RouterProvider
+        router={createMemoryRouter(routes, { initialEntries: ['/character/yelan'] })}
+      />,
+    )
+    const section = (await screen.findByRole('heading', { name: 'Best weapons' })).parentElement!
+    expect(within(section).getByText('Aqua Simulacra')).toBeInTheDocument()
+    expect(within(section).getByText('Your best')).toBeInTheDocument()
+    await user.click(within(section).getByRole('button', { name: 'Equip' }))
+    await waitFor(async () => expect((await db.characters.get('yelan'))!.weaponId).toBe(fav.id))
+  })
+})
