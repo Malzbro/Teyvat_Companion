@@ -23,7 +23,7 @@ export function LevelField({ level, ascension, caps, maxLevel, onChange }: Level
   const atCap = caps.slice(0, -1).includes(level)
   const ascended = atCap && ascension > phase
   const setLevel = (l: number) => onChange(l, phaseForLevel(l, caps))
-  const quick = [1, ...caps.slice(0, -1).filter((c) => c >= 40), caps[caps.length - 1]]
+  const quick = [1, ...caps.slice(0, -1).filter((c) => c >= 20), caps[caps.length - 1]]
 
   return (
     <div className="space-y-2.5">
@@ -35,23 +35,28 @@ export function LevelField({ level, ascension, caps, maxLevel, onChange }: Level
         max={max}
         format={(v) => `${v}/${v > caps[caps.length - 1] ? max : caps[ascension]}`}
       />
-      <div className="flex flex-wrap gap-1.5">
+      <div className="flex gap-1">
         {quick.map((l) => (
-          <Chip key={l} selected={level === l} onClick={() => setLevel(l)} className="min-h-8 px-3">
+          <Chip
+            key={l}
+            selected={level === l}
+            onClick={() => setLevel(l)}
+            className="min-h-9 min-w-0 flex-1 justify-center px-0 tabular-nums"
+          >
             {l}
           </Chip>
         ))}
-        {atCap && (
-          <Chip
-            selected={ascended}
-            color="var(--mint)"
-            className="min-h-8 px-3"
-            onClick={() => onChange(level, ascended ? phase : phase + 1)}
-          >
-            <Sparkle size={14} /> Ascended
-          </Chip>
-        )}
       </div>
+      {atCap && (
+        <Chip
+          selected={ascended}
+          color="var(--mint)"
+          className="min-h-8 px-3"
+          onClick={() => onChange(level, ascended ? phase : phase + 1)}
+        >
+          <Sparkle size={14} /> Ascended
+        </Chip>
+      )}
     </div>
   )
 }
