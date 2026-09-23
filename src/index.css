@@ -1,1 +1,182 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/nunito';
+@import '@fontsource-variable/fraunces';
+
+/* Theme switch: <html data-theme="light|dark">. Dark is the default. */
+@custom-variant light (&:where([data-theme='light'], [data-theme='light'] *));
+
+/* ---- Palette (dark, default): dreamy night sky, soft pink + mint ---- */
+:root {
+  --bg: #13101f;
+  --bg-glow-1: rgb(247 168 200 / 0.16);
+  --bg-glow-2: rgb(158 230 196 / 0.11);
+  --star: rgb(255 255 255 / 0.5);
+  --surface: rgb(255 255 255 / 0.055);
+  --surface-strong: rgb(255 255 255 / 0.09);
+  --surface-solid: #1e1930;
+  --border: rgb(255 255 255 / 0.09);
+  --text: #f4effb;
+  --text-muted: #aaa3c3;
+  --text-faint: #736c8d;
+  --accent: #f7a8c8;
+  --accent-strong: #f489b4;
+  --accent-ink: #3a1428;
+  --mint: #9ee6c4;
+  --mint-ink: #0f3526;
+  --danger: #ff8f9c;
+  --shadow: 0 10px 30px -12px rgb(0 0 0 / 0.6);
+
+  --pyro: #ff9a6b;
+  --hydro: #5cc8f5;
+  --electro: #c29bff;
+  --cryo: #a6e9f5;
+  --anemo: #6fdcbc;
+  --geo: #f5cf5f;
+  --dendro: #aad65a;
+
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  --bg: #fbf6fb;
+  --bg-glow-1: rgb(244 137 180 / 0.18);
+  --bg-glow-2: rgb(94 201 152 / 0.16);
+  --star: rgb(170 120 190 / 0.35);
+  --surface: rgb(255 255 255 / 0.72);
+  --surface-strong: rgb(255 255 255 / 0.92);
+  --surface-solid: #ffffff;
+  --border: rgb(60 30 80 / 0.1);
+  --text: #2a2340;
+  --text-muted: #6d6488;
+  --text-faint: #9d95b4;
+  --accent: #d95a8f;
+  --accent-strong: #c8457c;
+  --accent-ink: #ffffff;
+  --mint: #2f9e73;
+  --mint-ink: #ffffff;
+  --danger: #d9435a;
+  --shadow: 0 10px 30px -14px rgb(90 40 110 / 0.25);
+
+  --pyro: #e0662f;
+  --hydro: #1f93cc;
+  --electro: #8c55e0;
+  --cryo: #3aa9c4;
+  --anemo: #26a585;
+  --geo: #c09010;
+  --dendro: #6e9e1a;
+
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-strong: var(--surface-strong);
+  --color-surface-solid: var(--surface-solid);
+  --color-line: var(--border);
+  --color-ink: var(--text);
+  --color-muted: var(--text-muted);
+  --color-faint: var(--text-faint);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-ink: var(--accent-ink);
+  --color-mint: var(--mint);
+  --color-mint-ink: var(--mint-ink);
+  --color-danger: var(--danger);
+
+  --color-pyro: var(--pyro);
+  --color-hydro: var(--hydro);
+  --color-electro: var(--electro);
+  --color-cryo: var(--cryo);
+  --color-anemo: var(--anemo);
+  --color-geo: var(--geo);
+  --color-dendro: var(--dendro);
+
+  --font-sans: 'Nunito Variable', ui-rounded, system-ui, sans-serif;
+  --font-display: 'Fraunces Variable', Georgia, serif;
+
+  --shadow-soft: var(--shadow);
+}
+
+@theme {
+  --animate-page-in: page-in 280ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --animate-sheet-in: sheet-in 320ms cubic-bezier(0.2, 0.9, 0.25, 1);
+  --animate-fade-in: fade-in 200ms ease-out;
+
+  @keyframes page-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+  @keyframes sheet-in {
+    from {
+      transform: translateY(100%);
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+}
+
+@layer base {
+  html {
+    background: var(--bg);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    min-height: 100dvh;
+    font-family: var(--font-sans);
+    color: var(--text);
+    background:
+      radial-gradient(60rem 40rem at -10% -10%, var(--bg-glow-1), transparent 60%),
+      radial-gradient(50rem 40rem at 110% 105%, var(--bg-glow-2), transparent 60%), var(--bg);
+    background-attachment: fixed;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* A faint field of stars behind everything. */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      radial-gradient(1px 1px at 12% 18%, var(--star), transparent 60%),
+      radial-gradient(1px 1px at 72% 9%, var(--star), transparent 60%),
+      radial-gradient(1.5px 1.5px at 42% 32%, var(--star), transparent 60%),
+      radial-gradient(1px 1px at 88% 41%, var(--star), transparent 60%),
+      radial-gradient(1px 1px at 22% 63%, var(--star), transparent 60%),
+      radial-gradient(1.5px 1.5px at 63% 74%, var(--star), transparent 60%),
+      radial-gradient(1px 1px at 8% 88%, var(--star), transparent 60%),
+      radial-gradient(1px 1px at 93% 86%, var(--star), transparent 60%);
+    opacity: 0.8;
+  }
+
+  #root {
+    position: relative;
+    z-index: 1;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 1ms !important;
+      transition-duration: 1ms !important;
+    }
+  }
+}
