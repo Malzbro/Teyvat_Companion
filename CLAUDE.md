@@ -35,7 +35,7 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 | 5 | Artifact inventory & quick-add | [x] |
 | 6 | Materials planner | [x] |
 | 7 | Stat calculator | [x] |
-| 8 | Modifier system (sets, resonance, weapons) | [ ] |
+| 8 | Modifier system (sets, resonance, weapons) | [x] |
 | 9 | Character profiles | [ ] |
 | 10 | Build optimizer | [ ] |
 | 11 | Character page | [ ] |
@@ -352,6 +352,9 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 
 | Date | Step | Decision / answer |
 | --- | --- | --- |
+| 2026-09-23 | 8 | **Approved set table** (numbers from each set's in-game text): Emblem (Burst DMG = 25% ER, max 75%), Golden Troupe (2pc Skill +20%; 4pc +25%, +25% off-field toggle on), Nighttime Whispers (Geo +20% after Skill on; +150% of that under Crystallize off), Finale of the Deep Galleries (0 Energy: NA/Burst +60% on), Fragment of Harmonic Whimsy (DMG +18%/stack, 3), Marechaussee (2pc NA/CA +15%; CR +12%/stack, 3), Heart of Depth (NA/CA +30% on), Blizzard (CR +20% on; Frozen +20% off), Crimson Witch (Vaporize/Melt +15%, transformative +40%, Pyro +7.5%/stack, 1), Gilded Dreams (ATK +14% per same-element / EM +50 per other-element teammate, on), Obsidian Codex (2pc DMG +15% on; 4pc CR +40% on), Noblesse (2pc Burst +20%; ATK +20% on), Tenacity (ATK +20% on). Scroll of Cinder City & Ocean-Hued Clam are notes only. Code: `src/engine/modifiers/`. |
+| 2026-09-23 | 8 | Resonance needs a full party of 4 with 2+ of an element: Pyro ATK +25%, Hydro HP +25%, Cryo CR +15% (toggle on), Geo DMG +15% shielded (toggle on; enemy RES shred as note), Dendro EM +50 plus +30 (Burning/Quicken/Bloom) and +20 (Aggravate/Spread/Hyperbloom/Burgeon) toggles, on — text confirmed by her. Electro/Anemo/Protective Canopy: info only. |
+| 2026-09-23 | 8 | Sets for **Sandrone, Odette, Varka, Durin: skipped for now**. Weapon passives: **later, once she enters weapons** — but the always-on first sentence of a passive (e.g. Aqua Simulacra "HP is increased by 28%") is counted automatically, since her real Yelan HP needs it; everything else in the passive is shown as a note. Damage-type bonuses (Skill/Burst/NA DMG, all DMG, Vaporize/Melt) live in a separate `dmg` block, not on the stat screen. |
 | 2026-09-23 | 7 | **Verified against her real Yelan screen** (akasha.cv/Enka card: Lv 90, C6, Aqua Simulacra R4, 4pc Emblem): HP 33,229 / ATK 1,097 / DEF 637 / EM 21 exact; CR 91.0 vs 91.1, CD 234.7 vs 234.6, ER 155.7 vs 155.6 (substat display rounding, within ±0.1%). HP only matches with Aqua Simulacra R4 always-on HP +28% → weapon always-on passives matter (Step 8). Kept as a regression test in `src/engine/stats.test.ts`. `computeStats` takes `extra` bonuses for Step 8 modifiers. Screenshots live in `screenshots/` (git-ignored: contains her UID). |
 | 2026-09-23 | 7 | Always-on 2pc bonuses are **parsed from genshin-db's 2pc text** (`src/engine/setBonus.ts`), not hand-typed: ATK/HP/DEF%, EM, ER, CRIT Rate, Healing, elemental/Physical DMG. Damage-type 2pcs (Skill/Burst/Normal DMG), shield and RES bonuses are left for Step 8. Base ER 100%, base crit 5%/50%. % stats scale only the white base (character + weapon base ATK). |
 | 2026-09-23 | 6 | Track **only goal materials**: the Materials tab lists just what active goals need, grouped (Mora & EXP, talent books, gems, boss drops, specialties, common drops, weapon mats), each with have/need bar + counter (tap the number to type; turns mint when enough). One goal per character. |
