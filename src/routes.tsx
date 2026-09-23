@@ -5,6 +5,7 @@ import { CharacterScreen } from './screens/character/CharacterScreen'
 import { HomeScreen } from './screens/HomeScreen'
 import { MaterialsScreen } from './screens/materials/MaterialsScreen'
 import { RosterScreen } from './screens/roster/RosterScreen'
+import { SettingsScreen } from './screens/SettingsScreen'
 import { StyleguideScreen } from './screens/StyleguideScreen'
 
 export const routes: RouteObject[] = [
@@ -16,6 +17,7 @@ export const routes: RouteObject[] = [
       { path: 'character/:key', element: <CharacterScreen /> },
       { path: 'artifacts', element: <ArtifactsScreen /> },
       { path: 'materials', element: <MaterialsScreen /> },
+      { path: 'settings', element: <SettingsScreen /> },
       { path: 'styleguide', element: <StyleguideScreen /> },
     ],
   },

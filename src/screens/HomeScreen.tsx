@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { CalendarDays, Skull, Target } from 'lucide-react'
+import { CalendarDays, Settings, Skull, Target } from 'lucide-react'
 import { Link } from 'react-router'
 import {
   Button,
@@ -91,7 +91,19 @@ export function HomeScreen() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Teyvat Companion" subtitle={greeting(now.getHours())} />
+      <PageHeader
+        title="Teyvat Companion"
+        subtitle={greeting(now.getHours())}
+        action={
+          <Link
+            to="/settings"
+            aria-label="Settings"
+            className="grid size-11 place-items-center rounded-full border border-line bg-surface text-muted transition hover:text-ink active:scale-90"
+          >
+            <Settings size={20} />
+          </Link>
+        }
+      />
 
       <Card element={featured.element} flush>
         <div className="relative h-44 overflow-hidden">

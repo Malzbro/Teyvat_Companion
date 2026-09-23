@@ -30,14 +30,12 @@ const showcase = {
 }
 
 const mockFetch = (status: number, body: unknown) =>
-  vi
-    .spyOn(globalThis, 'fetch')
-    .mockResolvedValue(
-      new Response(JSON.stringify(body), {
-        status,
-        headers: { 'content-type': 'application/json' },
-      }),
-    )
+  vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+    new Response(JSON.stringify(body), {
+      status,
+      headers: { 'content-type': 'application/json' },
+    }),
+  )
 
 beforeEach(async () => {
   await Promise.all(db.tables.map((t) => t.clear()))
