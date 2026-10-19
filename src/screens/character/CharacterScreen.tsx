@@ -27,7 +27,7 @@ import {
   type StatKey,
 } from '../../data'
 import { STAT_SHORT, formatStat } from '../../data/stats'
-import { db, type Artifact } from '../../db'
+import { db, type Artifact, type OwnedCharacter, type OwnedWeapon } from '../../db'
 import { equipArtifact } from '../../db/artifacts'
 import { ARTIFACT_SLOTS, SLOT_LABELS } from '../../engine/artifact'
 import { needsFor, progress } from '../../engine/materials'
@@ -35,11 +35,14 @@ import { DMG_LABELS, computeBuild, type ConditionState, type DmgKey } from '../.
 import {
   lockedArtifactIds,
   optimizeInBackground,
+  rotationInBackground,
   scoreParts,
   type OptimizeResult,
   type SuggestedBuild,
 } from '../../engine/optimizer'
 import { getProfile } from '../../engine/profiles'
+import type { RotationResult } from '../../engine/rotations/damage'
+import { buffsFor } from '../../engine/teams/suggest'
 import { GoalSheet } from '../materials/GoalSheet'
 import { CharacterSheet } from '../roster/CharacterSheet'
 import { TeamPicker } from './TeamPicker'
@@ -331,6 +334,16 @@ export function CharacterScreen() {
           )}
         </section>
       )}
+
+      {/* Rotation DPS (Step 18) */}
+      <RotationCard
+        me={me}
+        weapons={weapons}
+        owned={owned}
+        teammates={teammates}
+        conditions={conditions}
+        equipped={equipped}
+      />
 
       {/* Weapons */}
       {WEAPON_GUIDES[key] && (
@@ -649,5 +662,96 @@ function GoalSummary({
         </ul>
       )}
     </Card>
+  )
+}
+
+/** Damage per 20 s cycle from the approved rotation, with the current gear and team. */
+function RotationCard({
+  me,
+  weapons,
+  owned,
+  teammates,
+  conditions,
+  equipped,
+}: {
+  me: OwnedCharacter
+  weapons: OwnedWeapon[]
+  owned: OwnedCharacter[]
+  teammates: string[]
+  conditions: ConditionState
+  equipped: Artifact[]
+}) {
+  const input = useMemo(() => {
+    const w = me.weaponId ? weapons.find((x) => x.id === me.weaponId) : undefined
+    return {
+      characterKey: me.key,
+      level: me.level,
+      ascension: me.ascension,
+      constellation: me.constellation,
+      talents: me.talents,
+      weapon: w
+        ? { key: w.key, level: w.level, ascension: w.ascension, refinement: w.refinement }
+        : undefined,
+      teammates,
+      conditions,
+      pieces: Object.fromEntries(equipped.map((a) => [a.slot, a])),
+      extra: buffsFor(me, teammates, { owned, weapons }),
+    }
+  }, [me, weapons, owned, teammates, conditions, equipped])
+  const key = useMemo(() => JSON.stringify(input), [input])
+  const [result, setResult] = useState<{ key: string; value: RotationResult | null }>()
+  useEffect(() => {
+    let cancelled = false
+    rotationInBackground(input).then((value) => !cancelled && setResult({ key, value }))
+    return () => {
+      cancelled = true
+    }
+  }, [input, key])
+
+  const r = result?.value
+  if (result && !r) return null
+  return (
+    <section className="space-y-2.5">
+      <h2 className="text-xs font-bold tracking-[0.18em] text-faint uppercase">Rotation DPS</h2>
+      <Card className={cn('space-y-3', result?.key !== key && 'opacity-60')}>
+        {!r ? (
+          <p className="text-sm text-muted">Working out the rotation…</p>
+        ) : (
+          <>
+            <div className="flex items-baseline justify-between gap-3">
+              <p className="font-display text-3xl font-semibold tabular-nums">
+                {Math.round(r.dps).toLocaleString('en-GB')}
+                <span className="ml-1 text-sm font-bold text-muted">DPS</span>
+              </p>
+              <p className="text-right text-xs text-muted">
+                {Math.round(r.total).toLocaleString('en-GB')} per 20 s
+                <br />
+                vs a level 100 enemy
+              </p>
+            </div>
+            <details className="text-sm">
+              <summary className="cursor-pointer font-semibold">Hits in the rotation</summary>
+              <ul className="mt-2 space-y-1">
+                {r.hits.map((h, i) => (
+                  <li key={i} className="flex justify-between gap-2 text-muted">
+                    <span className="min-w-0 truncate">
+                      {h.name} <span className="text-faint">×{h.count}</span>
+                    </span>
+                    <span className="shrink-0 text-ink tabular-nums">
+                      {Math.round(h.total).toLocaleString('en-GB')}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </details>
+            <p className="text-xs text-faint">
+              Average hits (crit counted on average) with today’s gear, team and talents. Reactions
+              other than Vaporize/Melt come in a later update.
+              {r.note ? ` ${r.note}` : ''}
+            </p>
+          </>
+        )}
+      </Card>
+    </section>
   )
 }
