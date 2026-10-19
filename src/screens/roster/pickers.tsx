@@ -19,8 +19,17 @@ import {
   type WeaponType,
 } from '../../data'
 
-const matches = (name: string, query: string) =>
-  name.toLowerCase().includes(query.trim().toLowerCase())
+/**
+ * Lower case, letters and digits only, with British spellings mapped to the game's:
+ * "traveller cryo" finds "Traveler (Cryo)".
+ */
+const normal = (text: string) =>
+  text
+    .toLowerCase()
+    .replace(/travell/g, 'travel')
+    .replace(/[^a-z0-9]/g, '')
+
+const matches = (name: string, query: string) => normal(name).includes(normal(query))
 
 const rowClass =
   'flex w-full items-center gap-3 rounded-2xl p-2 text-left transition hover:bg-surface-strong active:scale-[0.98]'
