@@ -59,3 +59,12 @@ export const SEED_CHARACTERS = [
   'durin',
   'clorinde',
 ]
+
+/**
+ * Artifact farming (Step 21, your answers): resin a day spent in artifact domains, and the average
+ * number of 5★ artifacts per 20-resin domain run (≈1.07 at World Level 8+, from the Genshin wiki's
+ * community drop data; genshin-db, Genshin Optimizer and paimon.moe don't have it).
+ */
+export const ARTIFACT_RESIN_PER_DAY = 120
+export const FIVE_STARS_PER_DOMAIN_RUN = 1.07
+export const RESIN_PER_DOMAIN_RUN = 20
