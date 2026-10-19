@@ -8,7 +8,13 @@ import type { Artifact } from '../../db/types'
 import { amount } from '../modifiers'
 import { teamBuffModifiers, type PartyMember } from '../modifiers/teamBuffs'
 import { mainStatValue } from '../artifact'
-import { rotationDamage, teamOf, type RotationInput } from './damage'
+import {
+  STELLAR_SWIRLS_BY,
+  STELLAR_SWIRL_MULT,
+  rotationDamage,
+  teamOf,
+  type RotationInput,
+} from './damage'
 
 const L90 = levelMultiplier(90)
 const RES = 0.9 // 10% enemy RES
@@ -102,14 +108,33 @@ describe('Stellar Swirl', () => {
     expect(q.each).toBeCloseTo(mult * atk * stacks * (1 + base) * crit('vesna') * RES, 3)
   })
 
-  it('adds Stellar Swirl reactions to the swirler, 0.75 × level multiplier each', () => {
+  it('Stellar Swirls: calibrated count and multiplier (your in-game test)', () => {
     const r = rotationDamage(input('vesna', ['qiqi']))
-    const s = hit(r, 'Stellar Swirl (reaction)')
-    expect(s.count).toBe(6)
+    const s = hit(r, 'Stellar Swirl (reaction + vortex)')
+    expect(s.count).toBe(STELLAR_SWIRLS_BY.vesna)
     const v = getCharacter('vesna')!
     const atk = characterBaseStats(v, 90, 6).atk * 1.12
     const base = Math.min((atk / 100) * 0.007, 0.14)
-    expect(s.each).toBeCloseTo(0.75 * L90 * (1 + base) * crit('vesna') * RES, 3)
+    expect(s.each).toBeCloseTo(STELLAR_SWIRL_MULT * L90 * (1 + base) * crit('vesna') * RES, 3)
+  })
+
+  it('Vesna and Faruzan each carry their own Stellar Swirls; others only without them', () => {
+    const team = ['vesna', 'faruzan', 'qiqi']
+    const swirls = (k: string, mates: string[]) =>
+      rotationDamage(input(k, mates))!.hits.find((h) => h.name.startsWith('Stellar Swirl'))
+    expect(swirls('vesna', team.slice(1))!.count).toBe(STELLAR_SWIRLS_BY.vesna)
+    expect(swirls('faruzan', ['vesna', 'qiqi'])!.count).toBe(STELLAR_SWIRLS_BY.faruzan)
+    // Jean (no calibrated count) swirls only when no calibrated swirler is in the team.
+    expect(swirls('jean', ['vesna', 'qiqi'])).toBeUndefined()
+    expect(swirls('jean', ['qiqi'])!.count).toBe(6)
+  })
+
+  it('Faruzan’s burst buffs her own hits too', () => {
+    const on = rotationDamage(input('faruzan', ['vesna', 'qiqi']))!
+    const off = rotationDamage(
+      input('faruzan', ['vesna', 'qiqi'], { conditions: { 'buff-faruzan': 0 } }),
+    )!
+    expect(on.total).toBeGreaterThan(off.total)
   })
 
   it('without a Cryo teammate the blades are plain Anemo DMG', () => {

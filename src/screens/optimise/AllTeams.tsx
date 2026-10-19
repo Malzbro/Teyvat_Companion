@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Check, ChevronDown, Pin } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { Button, Card, CharacterAvatar, Segmented, cn } from '../../components'
+import { Button, Card, CharacterAvatar, CountField, Segmented, cn } from '../../components'
 import { getArtifactSet, getCharacter } from '../../data'
 import { db, type Artifact, type OwnedCharacter, type OwnedWeapon } from '../../db'
 import { applyTeamPlan } from '../../db/optimise'
@@ -240,6 +240,7 @@ function TeamRow({
       )}
 
       {adviceBase && <AdvicePanel base={adviceBase} party={keys} plan={team.plan} />}
+      {gearing === 'now' && <InGameTest team={team} />}
 
       <Button
         block
@@ -354,6 +355,106 @@ function AdvicePanel({
         no useful substat rolls to every roll landing on the best one. Farm targets assume two
         average rolls in each named substat; days are the average wait for one, best value first.
       </p>
+    </div>
+  )
+}
+
+/** 1.12 → "+12%", 0.9 → "−10%", ~1 → "±0%". */
+const signedPct = (ratio: number) => {
+  const p = Math.round((ratio - 1) * 100)
+  return p === 0 ? '±0%' : `${p > 0 ? '+' : '−'}${Math.abs(p)}%`
+}
+
+interface InGameRun {
+  seconds: number
+  /** Total damage per character in the run. */
+  totals: Record<string, number>
+}
+
+/**
+ * Compare the app with a run in game (e.g. a Miliastra Wonderland DPS calculator): her totals per
+ * character over the run's length, against the app's DPS with the gear they wear now.
+ */
+function InGameTest({ team }: { team: RankedTeam }) {
+  const keys = team.members.map((m) => m.key)
+  const id = `ingame:${[...keys].sort().join(',')}`
+  const saved = useLiveQuery(
+    () => db.settings.get(id).then((s) => (s?.value as InGameRun | undefined) ?? null),
+    [id],
+  )
+  const [open, setOpen] = useState(false)
+  if (saved === undefined) return null
+  const run: InGameRun = saved ?? { seconds: 60, totals: {} }
+  const save = (next: InGameRun) => db.settings.put({ key: id, value: next })
+  const name = (k: string) => getCharacter(k)?.name ?? k
+  const entered = keys.filter((k) => (run.totals[k] ?? 0) > 0)
+  const gameTeam = entered.reduce((s, k) => s + run.totals[k] / run.seconds, 0)
+  const appTeam = team.members.filter((m) => entered.includes(m.key)).reduce((s, m) => s + m.dps, 0)
+
+  return (
+    <div className="rounded-2xl border border-line">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex min-h-11 w-full items-center justify-between px-3 text-sm font-semibold"
+      >
+        Compare with an in-game test
+        <ChevronDown size={18} className={cn('transition', open && 'rotate-180')} />
+      </button>
+      {open && (
+        <div className="space-y-3 px-3 pb-3">
+          <p className="text-xs text-muted">
+            Run the team on a dummy (e.g. a Miliastra Wonderland DPS calculator) and enter each
+            character’s total damage. The app uses a level 100 enemy and the gear they wear now.
+          </p>
+          <div className="flex items-center justify-between gap-2 text-sm">
+            <span className="font-semibold">Run length (seconds)</span>
+            <CountField
+              label="seconds"
+              value={run.seconds}
+              onChange={(v) => save({ ...run, seconds: Math.max(1, v) })}
+            />
+          </div>
+          <ul className="space-y-2">
+            {team.members.map((m) => {
+              const total = run.totals[m.key] ?? 0
+              const game = total / run.seconds
+              const ratio = total > 0 && game > 0 ? m.dps / game : null
+              return (
+                <li key={m.key} className="space-y-1">
+                  <div className="flex items-center justify-between gap-2 text-sm">
+                    <span className="font-bold">{name(m.key)}</span>
+                    <CountField
+                      label={`${name(m.key)} damage`}
+                      value={total}
+                      onChange={(v) => save({ ...run, totals: { ...run.totals, [m.key]: v } })}
+                    />
+                  </div>
+                  {ratio !== null && (
+                    <p className="text-right text-xs text-muted tabular-nums">
+                      game {fmt(game)} DPS · app {fmt(m.dps)} ·{' '}
+                      <span
+                        className={cn(
+                          'font-bold',
+                          Math.abs(ratio - 1) <= 0.1 ? 'text-mint' : 'text-danger',
+                        )}
+                      >
+                        {signedPct(ratio)}
+                      </span>
+                    </p>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+          {entered.length > 0 && (
+            <p className="rounded-xl bg-surface-strong px-3 py-2 text-sm">
+              Team: game <b>{fmt(gameTeam)}</b> DPS, app <b>{fmt(appTeam)}</b> (
+              {signedPct(appTeam / gameTeam)}). Within ±10% is green.
+            </p>
+          )}
+        </div>
+      )}
     </div>
   )
 }
