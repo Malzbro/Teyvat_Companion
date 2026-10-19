@@ -296,6 +296,22 @@ function step19Buffs(
       )
   }
 
+  // Stellar Swirl Base DMG from Vesna's and the Traveler's passives is a party buff, so it also
+  // counts on the swirls the others trigger (the focal's own is added in rotations/damage.ts).
+  if (elements.has('Cryo') && elements.has('Anemo'))
+    for (const m of members) {
+      const atk = m.final?.atk
+      if (!atk) continue
+      const p = m.key === 'vesna' ? D.vesna : m.key === 'travelercryo' ? D.travelercryo : undefined
+      if (p)
+        out.modifiers.push({
+          id: `${m.key}-stellar-base`,
+          source: `${getCharacter(m.key)?.name}: Stellar Swirl Base DMG`,
+          stat: 'stellarswirl_baseDmg_',
+          value: Math.min((atk / 100) * p.a0BaseDmgPer100Atk, p.a0BaseDmgMax),
+        })
+    }
+
   // Shred from sets worn by anyone in the party (the focal character included).
   const wearers = [
     { key: focal.key, sets: focalSets },

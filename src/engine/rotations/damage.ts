@@ -17,7 +17,7 @@ import type { Element, StatKey, TalentKind } from '../../data/types'
 import type { Artifact, TalentLevels } from '../../db/types'
 import { ARTIFACT_SLOTS } from '../artifact'
 import { type Condition, type ConditionState, type DmgBlock, type ModifierSet } from '../modifiers'
-import { BUFF_DATA } from '../../data/buffs'
+import { BUFF_DATA, atTalentLevel } from '../../data/buffs'
 import { REACTION_DATA, levelMultiplier } from '../../data/reactions'
 import { SWIRLABLE, moonsignLevel } from '../modifiers/teamBuffs'
 import { makeEvaluator } from '../optimizer/evaluator'
@@ -82,6 +82,16 @@ const TYPE_DMG: Record<HitType, keyof DmgBlock | null> = {
 export const AGGRAVATE_SHARE: Record<string, number> = { clorinde: 50, fischl: 60, lisa: 33 }
 /** Reactions per 20 s cycle (approved). */
 export const STELLAR_SWIRLS = 6
+/**
+ * Calibrated from your Miliastra Wonderland test (2026-10-19, level 100 dummy, Vesna · Faruzan ·
+ * Qiqi · Traveler, 3 rotations in 60 s): Stellar Swirls per 20 s cycle by who triggers them
+ * (Vesna 26 and Faruzan 13 in the run), and the damage of one Stellar Swirl as a multiple of the
+ * level multiplier. Game data has no number for the vortex hits a Stellar Swirl leaves, so this
+ * replaces GO's 0.75 with the value (6.22) that reproduces Faruzan's total (she deals almost nothing else);
+ * with it, Vesna's total is predicted independently. See CLAUDE.md, "Stellar Swirl calibration".
+ */
+export const STELLAR_SWIRLS_BY: Record<string, number> = { vesna: 9, faruzan: 4 }
+export const STELLAR_SWIRL_MULT = 6.22
 export const SWIRLS = 4
 export const FISCHL_A4_HITS = 6
 
@@ -366,6 +376,25 @@ export function rotationDamage(input: RotationInput): RotationResult | null {
   const asc4 = input.ascension >= A4_ASCENSION
 
   // --- Own kit and set effects (Step 19) ---
+  // Faruzan's burst buffs the whole party, herself included (teamBuffs only covers teammates).
+  if (key === 'faruzan') {
+    const shownNow = shownTalents(key, input.constellation, input.talents)
+    const id = 'buff-faruzan'
+    const on = (input.conditions[id] ?? 1) > 0
+    own.push({
+      id,
+      source: "Faruzan: The Wind's Secret Ways",
+      label: 'Her own burst buffs her too',
+      kind: 'toggle',
+      default: 1,
+    })
+    if (on) {
+      final.anemo_dmg_ += atTalentLevel(D.faruzan.burstAnemoDmg, shownNow.burst)
+      dmg.anemo_res_shred_ += atTalentLevel(D.faruzan.burstAnemoShred, shownNow.burst)
+      if (input.ascension >= A4_ASCENSION) dmg.anemo_flat_ += D.faruzan.a4BaseAtk * ev.base.atk
+      if (input.constellation >= 6) dmg.anemo_crit_dmg_ += D.faruzan.c6AnemoCritDmg
+    }
+  }
   let electroNaBurstFlat = 0
   if (key === 'clorinde') {
     if (team.electroReaction && input.ascension >= A1_ASCENSION) {
@@ -494,51 +523,55 @@ export function rotationDamage(input: RotationInput): RotationResult | null {
     if (n > 0) hits.push({ name: 'Thundering Retribution', count: n, each, total: each * n })
   }
 
-  // Swirls: carried by the team's main Anemo character.
-  if (swirlerOf(team) === key) {
+  // Swirls: each Anemo character with a calibrated count carries their own Stellar Swirls;
+  // otherwise the team's main Anemo character carries them all.
+  const calibrated = team.keys.some((k) => STELLAR_SWIRLS_BY[k] !== undefined)
+  const swirlsHere = calibrated ? STELLAR_SWIRLS_BY[key] !== undefined : swirlerOf(team) === key
+  if (team.radiance && swirlsHere) {
     const em = final.eleMas
     const lv = levelMultiplier(input.level)
-    if (team.radiance) {
-      const n = stacks(
-        'react-stellar-swirls',
-        'Stellar Swirl',
-        'Stellar Swirl reactions',
-        20,
-        STELLAR_SWIRLS,
-      )
+    const n = stacks(
+      'react-stellar-swirls',
+      'Stellar Swirl',
+      `Stellar Swirls ${getCharacter(key)?.name ?? key} triggers`,
+      30,
+      STELLAR_SWIRLS_BY[key] ?? STELLAR_SWIRLS,
+    )
+    const each =
+      STELLAR_SWIRL_MULT *
+      lv *
+      (1 + emFactor(em, 6, 2000) + dmg.stellarswirl_dmg_) *
+      (1 + dmg.stellarswirl_baseDmg_) *
+      critOf(final, 0, dmg.anemo_crit_dmg_) *
+      resFor(dmg, 'Anemo', profile)
+    if (n > 0)
+      hits.push({
+        name: 'Stellar Swirl (reaction + vortex)',
+        count: n,
+        each,
+        total: each * n,
+        reaction: 'Stellar Swirl',
+      })
+  }
+  if (swirlerOf(team) === key && !team.radiance) {
+    const em = final.eleMas
+    const lv = levelMultiplier(input.level)
+    const swirled = SWIRLABLE.find((e) => team.elements.has(e))
+    if (swirled) {
+      const n = stacks('react-swirls', 'Swirl', `${swirled} Swirl reactions`, 20, SWIRLS)
       const each =
-        REACTION_DATA.transformative.stellarswirl *
+        REACTION_DATA.transformative.swirl *
         lv *
-        (1 + emFactor(em, 6, 2000) + dmg.stellarswirl_dmg_) *
-        (1 + dmg.stellarswirl_baseDmg_) *
-        critOf(final, 0, dmg.anemo_crit_dmg_) *
-        resFor(dmg, 'Anemo', profile)
+        (1 + emFactor(em, 16, 2000) + dmg.swirl_dmg_) *
+        resFor(dmg, swirled, profile)
       if (n > 0)
         hits.push({
-          name: 'Stellar Swirl (reaction)',
+          name: `${swirled} Swirl`,
           count: n,
           each,
           total: each * n,
-          reaction: 'Stellar Swirl',
+          reaction: 'Swirl',
         })
-    } else {
-      const swirled = SWIRLABLE.find((e) => team.elements.has(e))
-      if (swirled) {
-        const n = stacks('react-swirls', 'Swirl', `${swirled} Swirl reactions`, 20, SWIRLS)
-        const each =
-          REACTION_DATA.transformative.swirl *
-          lv *
-          (1 + emFactor(em, 16, 2000) + dmg.swirl_dmg_) *
-          resFor(dmg, swirled, profile)
-        if (n > 0)
-          hits.push({
-            name: `${swirled} Swirl`,
-            count: n,
-            each,
-            total: each * n,
-            reaction: 'Swirl',
-          })
-      }
     }
   }
 
