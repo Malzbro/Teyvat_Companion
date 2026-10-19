@@ -10,6 +10,8 @@ export type Reaction =
   | { kind: 'none' }
   /** Amplifying reaction; `base` is 1.5 (Pyro→Hydro vape, Cryo→Pyro melt) or 2 (Hydro→Pyro vape, Pyro→Cryo melt). */
   | { kind: 'vaporize' | 'melt'; base: 1.5 | 2 }
+  /** The reaction the team is built around; counted from Step 19 (×1 until then). */
+  | { kind: 'aggravate' | 'stellarSwirl' | 'stellarConduct' | 'lunarBloom' }
 
 export interface Profile {
   key: string
@@ -108,7 +110,7 @@ export const PROFILES: Record<string, Profile> = {
     goblet: ['electro_dmg_'],
     circlet: CRIT,
     sets: { fourPiece: ['fragmentofharmonicwhimsy'], twoPlusTwo: [] },
-    reaction: none,
+    reaction: { kind: 'aggravate' },
   },
   xiangling: {
     key: 'xiangling',
@@ -175,6 +177,187 @@ export const PROFILES: Record<string, Profile> = {
     reaction: none,
     minER: 1.3,
   },
+
+  // --- Your account (Step 17, approved 2026-10-19) --------------------------
+  vesna: dps('vesna', 'atk', 'skill', 'Anemo', ['scarletproof'], [], { kind: 'stellarSwirl' }),
+  fischl: dps(
+    'fischl',
+    'atk',
+    'skill',
+    'Electro',
+    ['goldentroupe'],
+    [['thunderingfury', 'gladiatorsfinale']],
+    { kind: 'aggravate' },
+  ),
+  kaeya: dps(
+    'kaeya',
+    'atk',
+    'burst',
+    'Cryo',
+    ['emblemofseveredfate', 'blizzardstrayer'],
+    [],
+    none,
+    1.6,
+  ),
+  noelle: {
+    ...dps(
+      'noelle',
+      'def',
+      'normal',
+      'Geo',
+      ['huskofopulentdreams', 'gladiatorsfinale'],
+      [],
+      none,
+      1.3,
+    ),
+    sands: ['def_'],
+  },
+  // Phantasm Performance scales on ATK and EM; ranked on EM until Step 18 adds both.
+  nefer: {
+    ...dps('nefer', 'eleMas', 'charged', 'Dendro', ['nightoftheskysunveiling'], [], {
+      kind: 'lunarBloom',
+    }),
+    sands: ['eleMas'],
+    goblet: ['eleMas', 'dendro_dmg_'],
+  },
+  lisa: dps(
+    'lisa',
+    'atk',
+    'burst',
+    'Electro',
+    ['emblemofseveredfate', 'noblesseoblige'],
+    [],
+    { kind: 'aggravate' },
+    1.6,
+  ),
+  travelercryo: dps(
+    'travelercryo',
+    'atk',
+    'burst',
+    'Cryo',
+    ['emblemofseveredfate', 'disenchantmentindeepshadow'],
+    [],
+    { kind: 'stellarConduct' },
+    1.6,
+  ),
+  faruzan: support(
+    'faruzan',
+    'atk',
+    'Anemo',
+    ['enerRech_'],
+    ['anemo_dmg_'],
+    CRIT,
+    ['viridescentvenerer'],
+    2,
+  ),
+  lynette: support(
+    'lynette',
+    'atk',
+    'Anemo',
+    ['enerRech_'],
+    ['anemo_dmg_'],
+    CRIT,
+    ['viridescentvenerer'],
+    1.4,
+  ),
+  jean: {
+    ...support('jean', 'atk', 'Anemo', ['atk_'], ['atk_'], ['heal_'], ['viridescentvenerer'], 1.6),
+    healer: true,
+  },
+  collei: support(
+    'collei',
+    'atk',
+    'Dendro',
+    ['enerRech_'],
+    ['dendro_dmg_'],
+    CRIT,
+    ['deepwoodmemories', 'tenacityofthemillelith'],
+    1.6,
+  ),
+  charlotte: {
+    ...support(
+      'charlotte',
+      'atk',
+      'Cryo',
+      ['atk_'],
+      ['atk_'],
+      ['heal_'],
+      ['noblesseoblige', 'oceanhuedclam'],
+      1.6,
+    ),
+    healer: true,
+  },
+  candace: support('candace', 'hp', 'Hydro', ['hp_'], ['hp_'], ['hp_'], ['noblesseoblige'], 1.6),
+  dahlia: support(
+    'dahlia',
+    'hp',
+    'Hydro',
+    ['hp_'],
+    ['hp_'],
+    ['hp_'],
+    ['tenacityofthemillelith'],
+    1.4,
+  ),
+  aino: support(
+    'aino',
+    'eleMas',
+    'Hydro',
+    ['eleMas'],
+    ['eleMas'],
+    ['eleMas'],
+    ['silkenmoonsserenade'],
+    1.6,
+  ),
+}
+
+/** A damage dealer: ATK% sands, element goblet, crit circlet unless overridden. */
+function dps(
+  key: string,
+  scaling: ScalingStat,
+  type: DamageType,
+  element: Element,
+  fourPiece: string[],
+  twoPlusTwo: [string, string][],
+  reaction: Reaction,
+  minER?: number,
+): Profile {
+  return {
+    key,
+    role: 'dps',
+    scaling,
+    damage: { type, element },
+    sands: ['atk_'],
+    goblet: [dmg(element)],
+    circlet: CRIT,
+    sets: { fourPiece, twoPlusTwo },
+    reaction,
+    ...(minER ? { minER } : {}),
+  }
+}
+
+/** A support, scored by the stat their buff, heal or shield uses. */
+function support(
+  key: string,
+  scaling: ScalingStat,
+  element: Element,
+  sands: StatKey[],
+  goblet: StatKey[],
+  circlet: StatKey[],
+  fourPiece: string[],
+  minER: number,
+): Profile {
+  return {
+    key,
+    role: 'support',
+    scaling,
+    damage: { type: 'burst', element },
+    sands,
+    goblet,
+    circlet,
+    sets: { fourPiece, twoPlusTwo: [] },
+    reaction: none,
+    minER,
+  }
 }
 
 export const isSupportProfile = (profile: Profile) => profile.role === 'support'
@@ -220,6 +403,6 @@ export const shredMultiplier = (shred: number) =>
  * base × (1 + 2.78·EM/(EM+1400) + reaction bonus). 1 for no reaction.
  */
 export function reactionMultiplier(reaction: Reaction, em: number, amplifyBonus = 0): number {
-  if (reaction.kind === 'none') return 1
+  if (reaction.kind !== 'vaporize' && reaction.kind !== 'melt') return 1
   return reaction.base * (1 + (2.78 * em) / (em + 1400) + amplifyBonus)
 }

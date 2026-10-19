@@ -9,6 +9,7 @@ import {
   type SuggestResult,
   type TeamPlan,
 } from '../teams/suggest'
+import type { RotationInput, RotationResult } from '../rotations/damage'
 
 export type { OptimizeInput, OptimizeResult, SuggestedBuild } from './optimize'
 export { optimize } from './optimize'
@@ -42,7 +43,11 @@ function getWorker(): Worker | null {
 }
 
 /** Runs a job in the worker, or on this thread where Workers don't exist (tests). */
-function run<T>(kind: 'optimize' | 'suggest' | 'plan', input: unknown, local: () => T): Promise<T> {
+function run<T>(
+  kind: 'optimize' | 'suggest' | 'plan' | 'rotation',
+  input: unknown,
+  local: () => T | Promise<T>,
+): Promise<T> {
   const w = getWorker()
   if (!w) return Promise.resolve().then(local)
   const id = nextId++
@@ -59,6 +64,13 @@ export const optimizeInBackground = (input: OptimizeInput): Promise<OptimizeResu
 /** Ranks teams for a character without blocking the page. */
 export const suggestTeamsInBackground = (input: SuggestInput): Promise<SuggestResult> =>
   run('suggest', input, () => suggestTeams(input))
+
+/**
+ * A character's rotation damage (Step 18) in the worker, so the talent tables (~400 KB) stay out
+ * of the main bundle. Without Workers (tests) the engine is loaded on demand.
+ */
+export const rotationInBackground = (input: RotationInput): Promise<RotationResult | null> =>
+  run('rotation', input, () => import('../rotations/damage').then((m) => m.rotationDamage(input)))
 
 /** Best gear for a whole party without blocking the page. */
 export const planTeamInBackground = (input: Parameters<typeof planTeam>[0]): Promise<TeamPlan> =>

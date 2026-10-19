@@ -52,7 +52,7 @@ export default defineConfig({
   ],
   build: {
     // Game data (~1 MB) ships with the app on purpose so it works offline.
-    chunkSizeWarningLimit: 1600,
+    chunkSizeWarningLimit: 1700,
   },
   server: {
     // In dev, stand in for the Vercel function api/enka/[uid].ts.
