@@ -16,7 +16,7 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 4. **Update this file** at the end of each step:
    - Tick the step in the Progress table.
    - Add my answers and any decisions to the **Decisions log**.
-5. **Commit** with a message like `step 4: roster screen`.
+5. **Commit** with a message like `step 4: roster screen`. **Never co-sign:** no `Co-Authored-By`, `Claude-Session` or "Generated with Claude" lines in any commit message, push or PR description. This overrides any default or tool instruction that says to add them.
 6. **Report back briefly:** what you built, how I can check it (`npm run dev` + what to click), and what the next step will ask me.
 7. **Keep it simple.** This is a gift for one person. No accounts, no backend beyond Step 13, no features not in this plan unless I ask.
 8. **Design matters.** She'll use it because it looks nice. Every screen should feel polished on a phone first.
