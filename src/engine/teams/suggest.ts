@@ -104,7 +104,7 @@ export function memberOf(
   return { ...member, final: build.stats.final, sets: build.stats.setCounts }
 }
 
-const weaponOf = (c: OwnedCharacter, weapons: OwnedWeapon[]) => {
+export const weaponOf = (c: OwnedCharacter, weapons: OwnedWeapon[]) => {
   const w = c.weaponId ? weapons.find((x) => x.id === c.weaponId) : undefined
   return w && getWeapon(w.key)
     ? { key: w.key, level: w.level, ascension: w.ascension, refinement: w.refinement }
