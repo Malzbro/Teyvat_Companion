@@ -8,6 +8,7 @@ import {
   CharacterAvatar,
   Chip,
   EmptyState,
+  Segmented,
   Stepper,
   Toggle,
   cn,
@@ -29,6 +30,7 @@ import { setSummary } from '../../engine/setSummary'
 import { buffsFor } from '../../engine/teams/suggest'
 import { ResonanceBadges } from '../character/TeamPicker'
 import { PageHeader } from '../PageHeader'
+import { AllTeams } from './AllTeams'
 import { partyResonances } from '../teams/party'
 
 const section = 'text-xs font-bold tracking-[0.18em] text-faint uppercase'
@@ -43,6 +45,7 @@ export function OptimiseScreen() {
     [],
   )
   const [picked, setPicked] = useState<string | null>(null)
+  const [mode, setMode] = useState<'one' | 'all'>('one')
 
   // Characters whose damage can be ranked (supports are scored by their buffs, not damage).
   const candidates = useMemo(
@@ -67,9 +70,32 @@ export function OptimiseScreen() {
       </>
     )
 
+  const modes = (
+    <div className="mb-4">
+      <Segmented
+        label="Optimise"
+        value={mode}
+        onChange={setMode}
+        options={[
+          { value: 'one', label: 'For one character' },
+          { value: 'all', label: 'All teams' },
+        ]}
+      />
+    </div>
+  )
+  if (mode === 'all')
+    return (
+      <>
+        <PageHeader title="Optimise" subtitle="Best teams & gear" />
+        {modes}
+        <AllTeams owned={owned} weapons={weapons} artifacts={artifacts} />
+      </>
+    )
+
   return (
     <>
       <PageHeader title="Optimise" subtitle="Best teams & gear" />
+      {modes}
       <p className="mb-4 text-sm text-muted">
         Pick who you’re building around. This tries every team you can make from your own
         characters, with your own artifacts, and ranks them by how much damage they do.
@@ -392,7 +418,7 @@ function TeamCard({
   )
 }
 
-function Gear({
+export function Gear({
   plan,
   owned,
   artifacts,
