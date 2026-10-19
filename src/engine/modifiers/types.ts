@@ -1,4 +1,4 @@
-import type { CharacterData, StatKey } from '../../data/types'
+import type { CharacterData, Element, StatKey } from '../../data/types'
 import type { StatBlock } from '../stats'
 
 /** Bonuses that aren't on the stat screen but change damage. */
@@ -12,6 +12,19 @@ export type DmgKey =
   | 'amplify_dmg_' // Vaporize / Melt bonus
   | 'transformative_dmg_' // Overloaded / Burning / Burgeon bonus
   | 'enemy_res_shred_' // Enemy RES to the character's damage element lowered (fraction)
+  // --- Step 19: used by rotations (src/engine/rotations) ---
+  | `${Lowercase<Element>}_res_shred_` // Enemy RES to one element lowered
+  | 'enemy_def_red_' // Enemy DEF lowered (Lisa)
+  | 'normal_elemental_dmg_' // Elemental DMG Bonus on Normal Attacks only (Candace)
+  | 'anemo_flat_' // Flat DMG added to Anemo hits (Faruzan's Hurricane Guard)
+  | 'anemo_crit_dmg_' // CRIT DMG on Anemo DMG (Faruzan C6)
+  | 'aggravate_dmg_'
+  | 'spread_dmg_'
+  | 'swirl_dmg_'
+  | 'stellarswirl_dmg_'
+  | 'stellarswirl_baseDmg_'
+  | 'lunar_dmg_' // All Lunar reaction DMG
+  | 'lunarbloom_baseDmg_'
 
 export type ModStat = StatKey | DmgKey
 
@@ -25,6 +38,24 @@ export const DMG_LABELS: Record<DmgKey, string> = {
   amplify_dmg_: 'Vaporize/Melt DMG',
   transformative_dmg_: 'Overloaded/Burning/Burgeon DMG',
   enemy_res_shred_: 'Enemy RES decrease',
+  pyro_res_shred_: 'Enemy Pyro RES decrease',
+  hydro_res_shred_: 'Enemy Hydro RES decrease',
+  electro_res_shred_: 'Enemy Electro RES decrease',
+  cryo_res_shred_: 'Enemy Cryo RES decrease',
+  anemo_res_shred_: 'Enemy Anemo RES decrease',
+  geo_res_shred_: 'Enemy Geo RES decrease',
+  dendro_res_shred_: 'Enemy Dendro RES decrease',
+  enemy_def_red_: 'Enemy DEF decrease',
+  normal_elemental_dmg_: 'Normal Attack Elemental DMG',
+  anemo_flat_: 'Anemo hits: flat DMG',
+  anemo_crit_dmg_: 'CRIT DMG on Anemo DMG',
+  aggravate_dmg_: 'Aggravate DMG',
+  spread_dmg_: 'Spread DMG',
+  swirl_dmg_: 'Swirl DMG',
+  stellarswirl_dmg_: 'Stellar Swirl DMG',
+  stellarswirl_baseDmg_: 'Stellar Swirl Base DMG',
+  lunar_dmg_: 'Lunar Reaction DMG',
+  lunarbloom_baseDmg_: 'Lunar-Bloom Base DMG',
 }
 
 export interface Modifier {

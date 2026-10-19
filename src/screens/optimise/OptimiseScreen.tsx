@@ -136,9 +136,9 @@ function Focal({
       buffsFor(
         me,
         owned.filter((c) => c.key !== focalKey).map((c) => c.key),
-        { owned, weapons },
+        { owned, weapons, artifacts },
       ).conditions,
-    [me, owned, weapons, focalKey],
+    [me, owned, weapons, artifacts, focalKey],
   )
 
   const input = useMemo(

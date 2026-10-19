@@ -343,6 +343,8 @@ export function CharacterScreen() {
         teammates={teammates}
         conditions={conditions}
         equipped={equipped}
+        artifacts={artifacts}
+        onConditions={setConditions}
       />
 
       {/* Weapons */}
@@ -673,6 +675,8 @@ function RotationCard({
   teammates,
   conditions,
   equipped,
+  artifacts,
+  onConditions,
 }: {
   me: OwnedCharacter
   weapons: OwnedWeapon[]
@@ -680,6 +684,8 @@ function RotationCard({
   teammates: string[]
   conditions: ConditionState
   equipped: Artifact[]
+  artifacts: Artifact[]
+  onConditions: (next: ConditionState) => void
 }) {
   const input = useMemo(() => {
     const w = me.weaponId ? weapons.find((x) => x.id === me.weaponId) : undefined
@@ -695,9 +701,9 @@ function RotationCard({
       teammates,
       conditions,
       pieces: Object.fromEntries(equipped.map((a) => [a.slot, a])),
-      extra: buffsFor(me, teammates, { owned, weapons }),
+      extra: buffsFor(me, teammates, { owned, weapons, artifacts }),
     }
-  }, [me, weapons, owned, teammates, conditions, equipped])
+  }, [me, weapons, owned, teammates, conditions, equipped, artifacts])
   const key = useMemo(() => JSON.stringify(input), [input])
   const [result, setResult] = useState<{ key: string; value: RotationResult | null }>()
   useEffect(() => {
@@ -736,6 +742,11 @@ function RotationCard({
                   <li key={i} className="flex justify-between gap-2 text-muted">
                     <span className="min-w-0 truncate">
                       {h.name} <span className="text-faint">×{h.count}</span>
+                      {h.reaction && (
+                        <span className="ml-1.5 rounded-full bg-mint/15 px-1.5 py-0.5 text-[10px] font-bold text-mint">
+                          {h.reaction}
+                        </span>
+                      )}
                     </span>
                     <span className="shrink-0 text-ink tabular-nums">
                       {Math.round(h.total).toLocaleString('en-GB')}
@@ -744,9 +755,41 @@ function RotationCard({
                 ))}
               </ul>
             </details>
+            {r.conditions.length > 0 && (
+              <details className="text-sm">
+                <summary className="cursor-pointer font-semibold">
+                  Team effects &amp; reactions ({r.conditions.length})
+                </summary>
+                <div className="mt-2 space-y-2">
+                  {r.conditions.map((c) =>
+                    c.kind === 'toggle' ? (
+                      <Toggle
+                        key={c.id}
+                        checked={c.value > 0}
+                        onChange={(on) => onConditions({ ...conditions, [c.id]: on ? 1 : 0 })}
+                        label={c.label}
+                        description={c.source}
+                      />
+                    ) : (
+                      <div key={c.id} className="rounded-2xl border border-line bg-surface p-3">
+                        <Stepper
+                          label={c.label}
+                          value={c.value}
+                          min={0}
+                          max={c.max ?? 1}
+                          step={(c.max ?? 1) >= 50 ? 10 : 1}
+                          onChange={(v) => onConditions({ ...conditions, [c.id]: v })}
+                        />
+                        <p className="mt-1 text-xs text-muted">{c.source}</p>
+                      </div>
+                    ),
+                  )}
+                </div>
+              </details>
+            )}
             <p className="text-xs text-faint">
-              Average hits (crit counted on average) with today’s gear, team and talents. Reactions
-              other than Vaporize/Melt come in a later update.
+              Average hits (crit counted on average) with today’s gear, team and talents. Healing,
+              shields and energy aren’t counted.
               {r.note ? ` ${r.note}` : ''}
             </p>
           </>

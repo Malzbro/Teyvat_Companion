@@ -54,7 +54,8 @@ describe('hit damage', () => {
   })
 
   it('counts a ×5 label five times (Clorinde’s Last Lightfall)', () => {
-    const r = rotationDamage(input('clorinde'))!
+    // Her A4 CRIT Rate stacks off, to check the ×5 alone.
+    const r = rotationDamage(input('clorinde', { conditions: { 'clorinde-a4': 0 } }))!
     const q = r.hits.find((h) => h.name === 'Last Lightfall')!
     const [mult] = talentValues('clorinde', 'burst', 'Skill DMG', 10)
     const atk = characterBaseStats(getCharacter('clorinde')!, 90, 6).atk
