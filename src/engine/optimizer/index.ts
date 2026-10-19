@@ -2,17 +2,28 @@
 
 import type { OwnedCharacter } from '../../db/types'
 import { optimize, type OptimizeInput, type OptimizeResult } from './optimize'
+import {
+  planTeam,
+  suggestTeams,
+  type SuggestInput,
+  type SuggestResult,
+  type TeamPlan,
+} from '../teams/suggest'
 
 export type { OptimizeInput, OptimizeResult, SuggestedBuild } from './optimize'
 export { optimize } from './optimize'
 export { scoreParts } from './score'
+export type {
+  MemberPlan,
+  SuggestInput,
+  SuggestResult,
+  TeamPlan,
+  TeamSuggestion,
+} from '../teams/suggest'
 
 let worker: Worker | null = null
 let nextId = 0
-const pending = new Map<
-  number,
-  { resolve: (r: OptimizeResult) => void; reject: (e: Error) => void }
->()
+const pending = new Map<number, { resolve: (r: never) => void; reject: (e: Error) => void }>()
 
 function getWorker(): Worker | null {
   if (typeof Worker === 'undefined') return null
@@ -20,26 +31,38 @@ function getWorker(): Worker | null {
     worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' })
     worker.onmessage = ({
       data,
-    }: MessageEvent<{ id: number; result?: OptimizeResult; error?: string }>) => {
+    }: MessageEvent<{ id: number; result?: unknown; error?: string }>) => {
       const job = pending.get(data.id)
       pending.delete(data.id)
       if (data.error) job?.reject(new Error(data.error))
-      else job?.resolve(data.result!)
+      else job?.resolve(data.result as never)
     }
   }
   return worker
 }
 
-/** Finds the best builds without blocking the page. */
-export function optimizeInBackground(input: OptimizeInput): Promise<OptimizeResult> {
+/** Runs a job in the worker, or on this thread where Workers don't exist (tests). */
+function run<T>(kind: 'optimize' | 'suggest' | 'plan', input: unknown, local: () => T): Promise<T> {
   const w = getWorker()
-  if (!w) return Promise.resolve().then(() => optimize(input))
+  if (!w) return Promise.resolve().then(local)
   const id = nextId++
-  return new Promise((resolve, reject) => {
-    pending.set(id, { resolve, reject })
-    w.postMessage({ id, input })
+  return new Promise<T>((resolve, reject) => {
+    pending.set(id, { resolve: resolve as (r: never) => void, reject })
+    w.postMessage({ id, kind, input })
   })
 }
+
+/** Finds the best builds without blocking the page. */
+export const optimizeInBackground = (input: OptimizeInput): Promise<OptimizeResult> =>
+  run('optimize', input, () => optimize(input))
+
+/** Ranks teams for a character without blocking the page. */
+export const suggestTeamsInBackground = (input: SuggestInput): Promise<SuggestResult> =>
+  run('suggest', input, () => suggestTeams(input))
+
+/** Best gear for a whole party without blocking the page. */
+export const planTeamInBackground = (input: Parameters<typeof planTeam>[0]): Promise<TeamPlan> =>
+  run('plan', input, () => planTeam(input))
 
 /** Artifacts worn by other characters who have their gear locked. */
 export function lockedArtifactIds(characterKey: string, owned: OwnedCharacter[]): string[] {

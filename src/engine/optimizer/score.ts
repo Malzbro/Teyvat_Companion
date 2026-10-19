@@ -7,7 +7,7 @@
 
 import type { StatKey } from '../../data/types'
 import type { DmgBlock } from '../modifiers'
-import { reactionMultiplier, type DamageType, type Profile } from '../profiles'
+import { reactionMultiplier, shredMultiplier, type DamageType, type Profile } from '../profiles'
 import type { StatBlock } from '../stats'
 
 const TYPE_DMG: Record<DamageType, keyof DmgBlock> = {
@@ -26,6 +26,8 @@ export interface ScoreParts {
   dmgBonus: number
   crit: number
   reaction: number
+  /** Teammates' enemy RES decrease (1 = none). */
+  res: number
   /** Support set weight (1 for damage dealers). */
   set: number
   score: number
@@ -52,13 +54,22 @@ export function scoreParts(
   if (isSupport(profile)) {
     const dmgBonus = profile.healer ? 1 + final.heal_ : 1
     const set = supportSetWeight(profile, setCounts)
-    return { scaling, dmgBonus, crit: 1, reaction: 1, set, score: scaling * dmgBonus * set }
+    return { scaling, dmgBonus, crit: 1, reaction: 1, res: 1, set, score: scaling * dmgBonus * set }
   }
   const elementKey = `${profile.damage.element.toLowerCase()}_dmg_` as StatKey
   const dmgBonus = 1 + final[elementKey] + dmg.dmg_ + dmg[TYPE_DMG[profile.damage.type]]
   const crit = 1 + Math.min(Math.max(final.critRate_, 0), 1) * final.critDMG_
   const reaction = reactionMultiplier(profile.reaction, final.eleMas, dmg.amplify_dmg_)
-  return { scaling, dmgBonus, crit, reaction, set: 1, score: scaling * dmgBonus * crit * reaction }
+  const res = shredMultiplier(dmg.enemy_res_shred_)
+  return {
+    scaling,
+    dmgBonus,
+    crit,
+    reaction,
+    res,
+    set: 1,
+    score: scaling * dmgBonus * crit * reaction * res,
+  }
 }
 
 export const meetsER = (profile: Profile, final: StatBlock) =>
