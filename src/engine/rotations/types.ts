@@ -1,7 +1,7 @@
 import type { Element, TalentKind } from '../../data/types'
 
 /** Which DMG Bonus a hit gets (Swift Hunt counts as Normal Attack DMG, Oz as Skill DMG …). */
-export type HitType = 'normal' | 'charged' | 'plunge' | 'skill' | 'burst'
+export type HitType = 'normal' | 'charged' | 'plunge' | 'skill' | 'burst' | 'other'
 
 export interface Hit {
   /** Talent table the multiplier comes from. */
@@ -21,6 +21,17 @@ export interface Hit {
   vesnaStacks?: number
   /** Shown in the breakdown, e.g. "Impale the Night: Pact". */
   name?: string
+  // --- Step 19 ---
+  /** Under Radiance: Stellar Swirl, use this label instead, as Stellar Swirl DMG (Vesna, Traveler). */
+  stellarLabel?: string
+  /** Element whose RES a Stellar Swirl hit checks (Anemo for Vesna's blades, Cryo for the Traveler). */
+  stellarResist?: Element
+  /** Counts as Lunar-Bloom DMG (Nefer's Shades): EM-scaling reaction formula, no DEF. */
+  lunar?: boolean
+  /** Phantasm Performance: +8% per Veil of Falsehood (Nefer's passive 1). */
+  phantasm?: boolean
+  /** Adds `times` × another label's value to the multiplier (Frostglow stacks on the javelin). */
+  addMult?: { label: string; stellarLabel?: string; times: number }
 }
 
 export interface Rotation {

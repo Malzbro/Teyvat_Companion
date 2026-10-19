@@ -13,7 +13,13 @@ import { getCharacter, getWeapon } from '../../data'
 import type { CharacterData } from '../../data/types'
 import type { Artifact, OwnedCharacter, OwnedWeapon } from '../../db/types'
 import { ARTIFACT_SLOTS } from '../artifact'
-import { amount, activeResonances, type ConditionState, type ModifierSet } from '../modifiers'
+import {
+  amount,
+  activeResonances,
+  computeBuild,
+  type ConditionState,
+  type ModifierSet,
+} from '../modifiers'
 import { teamBuffModifiers, type PartyMember } from '../modifiers/teamBuffs'
 import { optimize, type SuggestedBuild } from '../optimizer/optimize'
 import { makeEvaluator } from '../optimizer/evaluator'
@@ -63,9 +69,14 @@ export interface SuggestResult {
 
 const DEEP = 6
 
-const memberOf = (c: OwnedCharacter, weapons: OwnedWeapon[]): PartyMember => {
+/** A teammate as the buff code needs them; with `artifacts`, also their stats and worn sets. */
+export function memberOf(
+  c: OwnedCharacter,
+  weapons: OwnedWeapon[],
+  artifacts?: Artifact[],
+): PartyMember {
   const w = c.weaponId ? weapons.find((x) => x.id === c.weaponId) : undefined
-  return {
+  const member: PartyMember = {
     key: c.key,
     level: c.level,
     ascension: c.ascension,
@@ -73,6 +84,24 @@ const memberOf = (c: OwnedCharacter, weapons: OwnedWeapon[]): PartyMember => {
     talents: c.talents,
     weapon: w ? { key: w.key, level: w.level, ascension: w.ascension } : undefined,
   }
+  const data = getCharacter(c.key)
+  if (!artifacts || !data) return member
+  const worn = Object.values(c.artifactIds)
+    .map((id) => artifacts.find((a) => a.id === id))
+    .filter((a): a is Artifact => !!a)
+  const wData = w && getWeapon(w.key)
+  const build = computeBuild({
+    character: data,
+    level: c.level,
+    ascension: c.ascension,
+    weapon:
+      w && wData
+        ? { data: wData, level: w.level, ascension: w.ascension, refinement: w.refinement }
+        : undefined,
+    artifacts: worn,
+    teammates: [],
+  })
+  return { ...member, final: build.stats.final, sets: build.stats.setCounts }
 }
 
 const weaponOf = (c: OwnedCharacter, weapons: OwnedWeapon[]) => {
@@ -94,14 +123,15 @@ export function lockedFor(owned: OwnedCharacter[], except: string[]): string[] {
 export function buffsFor(
   focal: OwnedCharacter,
   mates: string[],
-  roster: Pick<RosterInput, 'owned' | 'weapons'>,
+  roster: Pick<RosterInput, 'owned' | 'weapons'> & { artifacts?: Artifact[] },
 ): ModifierSet {
   const data = getCharacter(focal.key) as CharacterData
   const party = mates
     .map((k) => roster.owned.find((c) => c.key === k))
     .filter((c): c is OwnedCharacter => !!c)
-    .map((c) => memberOf(c, roster.weapons))
-  return teamBuffModifiers(data, party)
+    .map((c) => memberOf(c, roster.weapons, roster.artifacts))
+  const own = roster.artifacts ? memberOf(focal, roster.weapons, roster.artifacts).sets : undefined
+  return teamBuffModifiers(data, party, own)
 }
 
 function trios<T>(list: T[]): T[][] {

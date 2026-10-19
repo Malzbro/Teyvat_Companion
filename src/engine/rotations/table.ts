@@ -44,6 +44,7 @@ export const ROTATIONS: Record<string, Rotation> = {
       {
         talent: 'skill',
         label: 'Windborne Sword Lv. 2 Spirit Blade DMG',
+        stellarLabel: 'Windborne Sword Lv. 2 Spirit Blade Stellar Swirl DMG',
         count: 1,
         type: 'skill',
         vesnaStacks: 2,
@@ -53,6 +54,7 @@ export const ROTATIONS: Record<string, Rotation> = {
         {
           talent: 'skill',
           label: 'Windborne Sword Lv. 3 Spirit Blade DMG',
+          stellarLabel: 'Windborne Sword Lv. 3 Spirit Blade Stellar Swirl DMG',
           count: 1,
           type: 'skill',
           vesnaStacks: stacks,
@@ -61,6 +63,7 @@ export const ROTATIONS: Record<string, Rotation> = {
         {
           talent: 'skill',
           label: 'Windborne Sword Lv. 3 Spirit Blade Final Hit DMG',
+          stellarLabel: 'Windborne Sword Lv. 3 Spirit Blade Final Hit Stellar Swirl DMG',
           count: 1,
           type: 'skill',
           vesnaStacks: stacks,
@@ -70,13 +73,14 @@ export const ROTATIONS: Record<string, Rotation> = {
       {
         talent: 'burst',
         label: 'Spirit Blade DMG',
+        stellarLabel: 'Spirit Blade Stellar Swirl DMG',
         count: 1,
         type: 'burst',
         name: 'For the Tsaritsa!',
         vesnaStacks: 4,
       },
     ],
-    'Spirit Blades become Stellar Swirl DMG with Radiance (Step 19).',
+    'With a Cryo teammate to swirl, Spirit Blades are Stellar Swirl DMG (Radiance).',
   ),
   fischl: rotation('fischl', [
     { talent: 'skill', label: 'Summoning DMG', count: 1, type: 'skill' },
@@ -110,17 +114,20 @@ export const ROTATIONS: Record<string, Rotation> = {
         label: `Phantasm Performance ${h} DMG (Nefer)`,
         count: 6,
         type: 'charged',
+        phantasm: true,
       })),
       ...['1-Hit', '2-Hit', '3-Hit'].map((h): Hit => ({
         talent: 'skill',
         label: `Phantasm Performance ${h} DMG (Shades)`,
         count: 6,
         type: 'charged',
+        phantasm: true,
+        lunar: true,
       })),
       { talent: 'burst', label: '1-Hit DMG', count: 1, type: 'burst' },
       { talent: 'burst', label: '2-Hit DMG', count: 1, type: 'burst' },
     ],
-    'Veils of Falsehood come from Lunar-Bloom (Step 19); counted as 0 until then.',
+    'Shades deal Lunar-Bloom DMG. Veils of Falsehood need Ascendant Gleam (two Moonsign characters).',
   ),
   lisa: rotation('lisa', [
     { talent: 'burst', label: 'Discharge DMG', count: 29, type: 'burst', name: 'Lightning Rose' },
@@ -132,6 +139,13 @@ export const ROTATIONS: Record<string, Rotation> = {
     {
       talent: 'burst',
       label: 'Ice Javelin DMG',
+      stellarLabel: 'Stellar Swirl Ice Javelin Single Strike DMG',
+      stellarResist: 'Cryo',
+      addMult: {
+        label: 'Frostglow DMG Bonus',
+        stellarLabel: 'Stellar Swirl Frostglow DMG Bonus',
+        times: 8,
+      },
       count: 5,
       type: 'burst',
       name: 'Ice Javelin (8 Frostglow)',
