@@ -157,6 +157,10 @@ export interface ArtifactStatsData {
   subTiers: Record<number, Partial<Record<StatKey, number[]>>>
   /** Every value the game can display (in display units, e.g. "3.9" or "209") → fewest rolls to reach it. */
   subValues: Record<number, Partial<Record<StatKey, Record<string, number>>>>
+  /** Chance of each main stat per slot (Step 21). */
+  mainStatOdds: Record<ArtifactSlot, Partial<Record<StatKey, number>>>
+  /** Relative weight of each substat being picked (Step 21). */
+  substatWeights: Partial<Record<StatKey, number>>
 }
 
 /** Average drops per run, from paimon.moe (see scripts/build-drop-data.ts). */

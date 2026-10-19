@@ -2,11 +2,15 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { Check, ChevronDown, Pin } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Button, Card, CharacterAvatar, Segmented, cn } from '../../components'
-import { getCharacter } from '../../data'
+import { getArtifactSet, getCharacter } from '../../data'
 import { db, type Artifact, type OwnedCharacter, type OwnedWeapon } from '../../db'
 import { applyTeamPlan } from '../../db/optimise'
 import type { ConditionState } from '../../engine/modifiers'
-import { allTeamsInBackground } from '../../engine/optimizer'
+import { adviceInBackground, allTeamsInBackground } from '../../engine/optimizer'
+import type { Advice, AdviceInput } from '../../engine/teams/advice'
+import { STAT_SHORT } from '../../data/stats'
+import { SLOT_LABELS } from '../../engine/artifact'
+import { ARTIFACT_RESIN_PER_DAY } from '../../config'
 import type { AllTeamsResult, RankedTeam } from '../../engine/teams/allTeams'
 import type { TeamPlan } from '../../engine/teams/suggest'
 import { ResonanceBadges } from '../character/TeamPicker'
@@ -14,6 +18,8 @@ import { partyResonances } from '../teams/party'
 import { Gear } from './OptimiseScreen'
 
 const PAGE = 10
+/** Top "best gear" teams that get the level/farm list (your saved teams always do). */
+const ADVICE_TOP = 3
 const section = 'text-xs font-bold tracking-[0.18em] text-faint uppercase'
 const fmt = (n: number) => Math.round(n).toLocaleString('en-GB')
 
@@ -109,6 +115,7 @@ export function AllTeams({
                 gearing={gearing}
                 owned={owned}
                 artifacts={artifacts}
+                adviceBase={gearing === 'best' && (i < ADVICE_TOP || t.pinned) ? input : null}
               />
             ))}
             {shown < list.length && (
@@ -129,6 +136,7 @@ export function AllTeams({
                   gearing={gearing}
                   owned={owned}
                   artifacts={artifacts}
+                  adviceBase={gearing === 'best' ? input : null}
                 />
               ))}
             </section>
@@ -149,12 +157,14 @@ function TeamRow({
   gearing,
   owned,
   artifacts,
+  adviceBase,
 }: {
   rank: number
   team: RankedTeam & { plan?: TeamPlan; nowDps?: number }
   gearing: Gearing
   owned: OwnedCharacter[]
   artifacts: Artifact[]
+  adviceBase: Omit<AdviceInput, 'party' | 'plan'> | null
 }) {
   const [open, setOpen] = useState(false)
   const [state, setState] = useState<'idle' | 'busy' | 'done'>('idle')
@@ -229,6 +239,8 @@ function TeamRow({
         </>
       )}
 
+      {adviceBase && <AdvicePanel base={adviceBase} party={keys} plan={team.plan} />}
+
       <Button
         block
         variant={state === 'done' ? 'secondary' : rank === 1 ? 'primary' : 'secondary'}
@@ -248,5 +260,100 @@ function TeamRow({
         )}
       </Button>
     </Card>
+  )
+}
+
+const pctText = (x: number) => `+${(x * 100).toFixed(1)}%`
+
+/** "Level these" and "Farm these" for one team (Step 21). */
+function AdvicePanel({
+  base,
+  party,
+  plan,
+}: {
+  base: Omit<AdviceInput, 'party' | 'plan'>
+  party: string[]
+  plan?: TeamPlan
+}) {
+  const [advice, setAdvice] = useState<Advice | 'loading' | null>(null)
+  async function load() {
+    setAdvice('loading')
+    try {
+      setAdvice(await adviceInBackground({ ...base, party, plan }))
+    } catch {
+      setAdvice(null)
+    }
+  }
+  if (advice === null)
+    return (
+      <Button block variant="secondary" onClick={load}>
+        What to level &amp; farm
+      </Button>
+    )
+  if (advice === 'loading')
+    return <p className="py-2 text-center text-sm text-muted">Working out the best upgrades…</p>
+  const name = (k: string) => getCharacter(k)?.name ?? k
+  const setName = (k: string) => getArtifactSet(k)?.name ?? k
+  return (
+    <div className="space-y-4 rounded-2xl border border-line bg-surface p-3">
+      <section className="space-y-2">
+        <h3 className="text-sm font-bold">Level these</h3>
+        {advice.levelUps.length === 0 ? (
+          <p className="text-xs text-muted">
+            Nothing worth levelling: the gear is maxed or won’t help.
+          </p>
+        ) : (
+          <ul className="space-y-1.5 text-sm">
+            {advice.levelUps.map((l) => (
+              <li key={l.artifact.id} className="flex items-baseline justify-between gap-2">
+                <span className="min-w-0 text-muted">
+                  <b className="text-ink">{name(l.characterKey)}</b> · {setName(l.artifact.setKey)}{' '}
+                  {SLOT_LABELS[l.artifact.slot].toLowerCase()} ({STAT_SHORT[l.artifact.mainStat]}) +
+                  {l.artifact.level} → +{l.toLevel}
+                </span>
+                <span className="shrink-0 font-bold text-mint tabular-nums">
+                  {l.max - l.min < 0.001
+                    ? pctText(l.min)
+                    : `${pctText(l.min)}–${(l.max * 100).toFixed(1)}%`}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+      <section className="space-y-2">
+        <h3 className="text-sm font-bold">Farm these</h3>
+        {advice.farm.length === 0 ? (
+          <p className="text-xs text-muted">No farm target adds more than 0.5% to this team.</p>
+        ) : (
+          <ul className="space-y-2 text-sm">
+            {advice.farm.map((f) => (
+              <li key={`${f.characterKey}-${f.slot}`} className="space-y-0.5">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="min-w-0 text-muted">
+                    <b className="text-ink">{name(f.characterKey)}</b> · {setName(f.setKey)}{' '}
+                    {SLOT_LABELS[f.slot].toLowerCase()}, {STAT_SHORT[f.mainStat]} with{' '}
+                    {f.substats.map((k) => STAT_SHORT[k]).join(' + ')}
+                  </span>
+                  <span className="shrink-0 font-bold text-mint tabular-nums">
+                    {pctText(f.gain)}
+                  </span>
+                </div>
+                <p className="text-xs text-faint">
+                  {f.domain ?? 'No domain'} · about {Math.max(1, Math.round(f.days))}{' '}
+                  {Math.round(f.days) === 1 ? 'day' : 'days'} at {ARTIFACT_RESIN_PER_DAY} resin a
+                  day
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+      <p className="text-[11px] text-faint">
+        Gains are to this team’s total DPS. Levelling: the main stat is exact; the range runs from
+        no useful substat rolls to every roll landing on the best one. Farm targets assume two
+        average rolls in each named substat; days are the average wait for one, best value first.
+      </p>
+    </div>
   )
 }

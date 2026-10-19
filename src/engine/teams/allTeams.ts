@@ -64,7 +64,7 @@ function combos<T>(list: T[], k: number): T[][] {
 const keyOf = (keys: string[]) => [...keys].sort().join(',')
 
 /** DPS of each member of a party, with given worn pieces and precomputed party members. */
-function partyDps(
+export function partyDps(
   keys: string[],
   input: AllTeamsInput,
   members: Map<string, PartyMember>,

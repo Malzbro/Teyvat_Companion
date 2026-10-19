@@ -12,6 +12,8 @@ const SOURCES = {
   subRolls: `${GO}/libs/gi/stats/Data/Artifacts/artifact_sub_rolls.json`,
   correction: `${GO}/libs/gi/stats/Data/Artifacts/artifact_sub_rolls_correction.json`,
   consts: `${GO}/libs/gi/consts/src/artifact.ts`,
+  // Main-stat and substat odds (GO cites the Genshin wiki's artifact distribution), Step 21.
+  odds: `${GO}/libs/gi/upopt/src/consts.ts`,
 }
 
 const RARITIES = [3, 4, 5] as const
@@ -30,10 +32,22 @@ function tsArray(src: string, name: string): string[] {
   return [...m[1].matchAll(/'([^']+)'/g)].map((x) => x[1])
 }
 
-const [mainJson, subJson, corrJson, consts] = await Promise.all(Object.values(SOURCES).map(get))
+const [mainJson, subJson, corrJson, consts, odds] = await Promise.all(
+  Object.values(SOURCES).map(get),
+)
 const main = JSON.parse(mainJson) as Record<string, Record<string, number[]>>
 const subRolls = JSON.parse(subJson) as Record<string, Record<string, Record<string, number[][]>>>
 const correction = JSON.parse(corrJson) as Record<string, Record<string, Record<string, string>>>
+
+/** `export const name = { key: 80 / 300, … }` → { key: 0.2667 }. */
+function oddsTable(name: string): Partial<Record<StatKey, number>> {
+  const m = odds.match(new RegExp(`export const ${name} = \\{([\\s\\S]*?)\\}`))
+  if (!m) throw new Error(`Couldn't find ${name} in GO upopt consts`)
+  const out: Partial<Record<StatKey, number>> = {}
+  for (const row of m[1].matchAll(/(\w+):\s*([\d.]+)(?:\s*\/\s*([\d.]+))?/g))
+    out[row[1] as StatKey] = Number(row[2]) / (row[3] ? Number(row[3]) : 1)
+  return out
+}
 
 const maxLevelSrc = consts.match(/artMaxLevel[^=]*=\s*\{([\s\S]*?)\}/)![1]
 const rollSrc = consts.match(/artSubstatRollData[^=]*=\s*\{([\s\S]*?)\} as const/)![1]
@@ -54,6 +68,14 @@ const data: ArtifactStatsData = {
   mainValues: {},
   subTiers: {},
   subValues: {},
+  mainStatOdds: {
+    flower: oddsTable('FlowerMainStatProbs'),
+    plume: oddsTable('PlumeMainStatProbs'),
+    sands: oddsTable('SandsMainStatProbs'),
+    goblet: oddsTable('GobletMainStatProbs'),
+    circlet: oddsTable('CircletMainStatProbs'),
+  },
+  substatWeights: oddsTable('substatWeights'),
 }
 
 for (const r of RARITIES) {
