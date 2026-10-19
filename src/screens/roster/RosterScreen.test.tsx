@@ -14,6 +14,17 @@ const renderRoster = () =>
   render(<RouterProvider router={createMemoryRouter(routes, { initialEntries: ['/roster'] })} />)
 
 describe('RosterScreen', () => {
+  it('finds the Traveler with the British spelling too', async () => {
+    const user = userEvent.setup()
+    renderRoster()
+    await user.click((await screen.findAllByRole('button', { name: 'Add character' }))[0])
+    const dialog = screen.getByRole('dialog', { name: 'Add character' })
+    await user.type(within(dialog).getByPlaceholderText('Search characters'), 'traveller cryo')
+    await user.click(within(dialog).getByRole('button', { name: /Traveler \(Cryo\)/ }))
+    await user.click(screen.getByRole('button', { name: 'Add to roster' }))
+    expect(await db.characters.get('travelercryo')).toBeDefined()
+  })
+
   it('adds, edits and removes a character', async () => {
     const user = userEvent.setup()
     renderRoster()
