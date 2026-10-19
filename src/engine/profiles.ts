@@ -177,6 +177,8 @@ export const PROFILES: Record<string, Profile> = {
   },
 }
 
+export const isSupportProfile = (profile: Profile) => profile.role === 'support'
+
 /** Placeholder from the element only (ATK, Skill, ATK%/element/crit, no sets): editable later. */
 export function genericProfile(key: string): Profile | undefined {
   const c = getCharacter(key)
@@ -198,6 +200,20 @@ export function genericProfile(key: string): Profile | undefined {
 export function getProfile(key: string): Profile | undefined {
   return PROFILES[key] ?? genericProfile(key)
 }
+
+/** RES most enemies start with (10%); shred is judged against it. */
+export const ENEMY_BASE_RES = 0.1
+
+/** The game's RES multiplier: below 0 RES counts half, above 75% it drops off faster. */
+export function resMultiplier(res: number): number {
+  if (res < 0) return 1 - res / 2
+  if (res < 0.75) return 1 - res
+  return 1 / (1 + 4 * res)
+}
+
+/** How much more damage an enemy takes once `shred` is taken off its RES (1 = no shred). */
+export const shredMultiplier = (shred: number) =>
+  shred > 0 ? resMultiplier(ENEMY_BASE_RES - shred) / resMultiplier(ENEMY_BASE_RES) : 1
 
 /**
  * Amplifying reaction multiplier (approved in Step 9):

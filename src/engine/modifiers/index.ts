@@ -28,6 +28,7 @@ export const DMG_KEYS: DmgKey[] = [
   'burst_dmg_',
   'amplify_dmg_',
   'transformative_dmg_',
+  'enemy_res_shred_',
 ]
 export const isDmgKey = (k: ModStat): k is DmgKey => (DMG_KEYS as string[]).includes(k)
 

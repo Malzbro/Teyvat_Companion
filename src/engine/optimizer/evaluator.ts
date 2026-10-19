@@ -24,8 +24,9 @@ import {
   type ConditionState,
   type DmgBlock,
   type Modifier,
+  type ModifierSet,
 } from '../modifiers'
-import { reactionMultiplier, type Profile } from '../profiles'
+import { reactionMultiplier, shredMultiplier, type Profile } from '../profiles'
 import { TWO_PIECE_STATS } from '../setBonus'
 import { emptyStats, type StatBlock } from '../stats'
 import { isSupport, meetsER, scoreParts, supportSetWeight, type ScoreParts } from './score'
@@ -38,6 +39,8 @@ export interface EvaluatorInput {
   teammates: string[]
   conditions: ConditionState
   profile: Profile
+  /** Extra effects, e.g. teammates' buffs (see modifiers/teamBuffs). */
+  extra?: ModifierSet
 }
 
 export interface Evaluation extends ScoreParts {
@@ -88,7 +91,11 @@ export function makeEvaluator(input: EvaluatorInput) {
   const base = { hp: own.hp, atk: own.atk + weaponAtk, def: own.def }
 
   const ctx0 = { character, setCounts: {}, teammates }
-  const fixed = merge(resonanceModifiers(ctx0), weaponModifiers(weapon, character))
+  const fixed = merge(
+    resonanceModifiers(ctx0),
+    weaponModifiers(weapon, character),
+    input.extra ?? { modifiers: [], conditions: [], notes: [] },
+  )
   const fixedConditions = new Map(fixed.conditions.map((c) => [c.id, c]))
   const fixedDmg = emptyDmg()
   for (const mod of fixed.modifiers) {
@@ -175,6 +182,7 @@ export function makeEvaluator(input: EvaluatorInput) {
     if (!a) arrays.set(block, (a = Float64Array.from(KEYS.map((k) => block[k]))))
     return a
   }
+  const resFactor = shredMultiplier(fixedDmg.enemy_res_shred_)
   const scratch = new Float64Array(KEYS.length)
   const { profile } = input
   const support = isSupport(profile)
@@ -226,7 +234,7 @@ export function makeEvaluator(input: EvaluatorInput) {
     const cr = Math.min(Math.max(scratch[IDX.critRate_], 0), 1)
     const crit = 1 + cr * scratch[IDX.critDMG_]
     const reaction = reactionMultiplier(profile.reaction, scratch[IDX.eleMas], amplify)
-    return { score: scaling * dmgBonus * crit * reaction, erOk }
+    return { score: scaling * dmgBonus * crit * reaction * resFactor, erOk }
   }
 
   return { evaluate, scoreOnly, base }

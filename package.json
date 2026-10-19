@@ -16,6 +16,7 @@
     "build:exp-data": "tsx scripts/build-exp-data.ts",
     "build:drop-data": "tsx scripts/build-drop-data.ts",
     "build:enka-data": "tsx scripts/build-enka-data.ts",
+    "build:buff-data": "tsx scripts/build-buff-data.ts",
     "build:icons": "tsx scripts/build-icons.ts"
   },
   "dependencies": {

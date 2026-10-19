@@ -1,4 +1,4 @@
-import { Boxes, Flower2, House, Users, UsersRound, type LucideIcon } from 'lucide-react'
+import { Boxes, Flower2, House, Sparkles, Users, UsersRound, type LucideIcon } from 'lucide-react'
 import { NavLink, Outlet, useLocation } from 'react-router'
 import { cn } from './components'
 import { Welcome } from './screens/Welcome'
@@ -7,6 +7,7 @@ const tabs: { to: string; label: string; icon: LucideIcon }[] = [
   { to: '/', label: 'Home', icon: House },
   { to: '/roster', label: 'Roster', icon: Users },
   { to: '/teams', label: 'Teams', icon: UsersRound },
+  { to: '/optimise', label: 'Optimise', icon: Sparkles },
   { to: '/artifacts', label: 'Artifacts', icon: Flower2 },
   { to: '/materials', label: 'Materials', icon: Boxes },
 ]

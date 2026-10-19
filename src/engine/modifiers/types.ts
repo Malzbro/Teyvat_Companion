@@ -11,6 +11,7 @@ export type DmgKey =
   | 'burst_dmg_'
   | 'amplify_dmg_' // Vaporize / Melt bonus
   | 'transformative_dmg_' // Overloaded / Burning / Burgeon bonus
+  | 'enemy_res_shred_' // Enemy RES to the character's damage element lowered (fraction)
 
 export type ModStat = StatKey | DmgKey
 
@@ -23,6 +24,7 @@ export const DMG_LABELS: Record<DmgKey, string> = {
   burst_dmg_: 'Elemental Burst DMG',
   amplify_dmg_: 'Vaporize/Melt DMG',
   transformative_dmg_: 'Overloaded/Burning/Burgeon DMG',
+  enemy_res_shred_: 'Enemy RES decrease',
 }
 
 export interface Modifier {

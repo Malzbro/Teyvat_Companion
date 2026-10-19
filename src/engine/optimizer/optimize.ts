@@ -9,7 +9,7 @@ import type { ArtifactSlot } from '../../data'
 import { STAT_LABELS } from '../../data/stats'
 import type { Artifact } from '../../db/types'
 import { ARTIFACT_SLOTS } from '../artifact'
-import type { ConditionState } from '../modifiers'
+import type { ConditionState, ModifierSet } from '../modifiers'
 import { getProfile, type Profile } from '../profiles'
 import { setSummary } from '../setSummary'
 import { makeEvaluator, type Evaluation } from './evaluator'
@@ -29,6 +29,8 @@ export interface OptimizeInput {
   lockedIds: string[]
   /** Override the stored profile (tests). */
   profile?: Profile
+  /** Extra effects counted on top of the build, e.g. teammates' buffs. */
+  extra?: ModifierSet
 }
 
 export interface SuggestedBuild {
