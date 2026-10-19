@@ -17,6 +17,8 @@ import type {
   MaterialData,
   StatKey,
   TalentKind,
+  TalentTable,
+  TalentTables,
   WeaponData,
   WeaponType,
   Weekday,
@@ -153,6 +155,50 @@ for (const [key, c] of Object.entries<any>(en.characters)) {
     },
   })
 }
+// The Traveler: one entry per element ("Traveler (Cryo)", key travelercryo). Stats and
+// ascension come from Aether (Lumine's are identical); talents, talent costs and constellations
+// are per element. The id is the element's talent-set id, not an avatar id, so Enka import
+// still skips the Traveler (its showcase doesn't say which element they use).
+for (const [key, t] of Object.entries<any>(en.talents)) {
+  if (!key.startsWith('traveler')) continue
+  const c = en.characters.aether
+  const s = all.stats.characters.aether
+  const img = all.image.characters?.aether ?? {}
+  const element = /\((\w+)\)/.exec(t.name)?.[1] as Element
+  characters.push({
+    key,
+    id: t.id,
+    name: t.name,
+    element,
+    weaponType: WEAPON[c.weaponType],
+    rarity: c.rarity,
+    region: '',
+    version: all.version.talents?.[key] ?? '',
+    ascensionStat: stat(c.substatType),
+    base: { hp: s.base.hp, atk: s.base.attack, def: s.base.defense },
+    curve: { hp: s.curve.hp, atk: s.curve.attack, def: s.curve.defense },
+    ascension: s.promotion.map((p: any) => ({
+      maxLevel: p.maxlevel,
+      hp: p.hp,
+      atk: p.attack,
+      def: p.defense,
+      stat: p.specialized,
+    })),
+    ascensionCosts: [1, 2, 3, 4, 5, 6].map((n) => costs(c.costs?.[`ascend${n}`])),
+    talentCosts: [2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => costs(t.costs?.[`lvl${n}`])),
+    talentNames: { normal: t.combat1.name, skill: t.combat2.name, burst: t.combat3.name },
+    talentBoosts: {
+      c3: boostedTalent(t, en.constellations[key]?.c3?.description),
+      c5: boostedTalent(t, en.constellations[key]?.c5?.description),
+    },
+    icons: {
+      icon: img.filename_icon,
+      side: img.filename_sideIcon,
+      card: img.filename_iconCard ?? img.filename_icon,
+      splash: '',
+    },
+  })
+}
 characters.sort((a, b) => a.name.localeCompare(b.name))
 
 // --- Weapons ----------------------------------------------------------------
@@ -283,6 +329,29 @@ const weaponCurves = trimCurves(
   new Set(weapons.flatMap((w) => [w.curve.atk, w.curve.substat]).filter(Boolean)),
 )
 
+// --- Talent scaling tables (for rotations) ---------------------------------
+
+/** 6 significant digits: keeps the multipliers exact as shown in game, halves the file size. */
+const sig = (n: number) => (typeof n === 'number' ? Number(n.toPrecision(6)) : n)
+const talentTables: Record<string, TalentTables> = {}
+for (const c of characters) {
+  const t = en.talents[c.key]
+  // Labels live with the text; the numbers live in the bundle's stats section.
+  const nums = all.stats.talents[c.key] ?? {}
+  const table = (field: string): TalentTable => ({
+    name: t[field].name,
+    labels: t[field].attributes?.labels ?? [],
+    params: Object.fromEntries(
+      Object.entries<number[]>(nums[field] ?? {}).map(([k, v]) => [k, v.map(sig)]),
+    ),
+  })
+  talentTables[c.key] = {
+    normal: table('combat1'),
+    skill: table('combat2'),
+    burst: table('combat3'),
+  }
+}
+
 // --- Meta & output ----------------------------------------------------------
 
 const versions = [...characters, ...weapons, ...artifactSets].map((x) => x.version).filter(Boolean)
@@ -312,6 +381,7 @@ write('weapons.json', weapons)
 write('artifact-sets.json', artifactSets)
 write('materials.json', materials)
 write('curves.json', { characters: characterCurves, weapons: weaponCurves })
+write('talents.json', talentTables)
 write('meta.json', meta)
 
 // --- Summary ----------------------------------------------------------------

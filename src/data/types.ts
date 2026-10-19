@@ -46,6 +46,19 @@ export interface CharacterAscensionPhase {
 
 export type TalentKind = 'normal' | 'skill' | 'burst'
 
+/**
+ * One talent's scaling table from genshin-db. Each label is "Name|{paramN:format}…", e.g.
+ * "Skill DMG|{param1:F1P}" or "Skill DMG|{param1:P} ATK+{param2:P} Elemental Mastery"; params
+ * hold each param's value per talent level (index 0 = level 1, up to level 15).
+ */
+export interface TalentTable {
+  name: string
+  labels: string[]
+  params: Record<string, number[]>
+}
+
+export type TalentTables = Record<TalentKind, TalentTable>
+
 export interface CharacterData {
   key: string
   id: number
