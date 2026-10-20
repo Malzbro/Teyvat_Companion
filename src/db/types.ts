@@ -98,6 +98,8 @@ export interface TeamComp {
   members: { characterKey: string; buildId: string | null }[]
   /** Where a suggested team came from (guide name), if it was copied from one. */
   source?: string
+  /** ISO date it was added to the tracker ("Optimise & track"), if it is tracked. */
+  trackedAt?: string
   /** ISO date string. */
   createdAt: string
 }

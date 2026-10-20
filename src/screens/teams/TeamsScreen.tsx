@@ -9,6 +9,7 @@ import { applyTeamComp, isWearing, newTeamComp, saveTeamComp, teamClashes } from
 import { ResonanceBadges } from '../character/TeamPicker'
 import { PageHeader } from '../PageHeader'
 import { partyResonances } from './party'
+import { PotentialPanel } from './PotentialPanel'
 import { TeamSheet } from './TeamSheet'
 
 type Tab = 'mine' | 'guides'
@@ -130,7 +131,13 @@ function TeamCard({
       <button type="button" onClick={onEdit} className="block w-full space-y-3 text-left">
         <div className="flex items-baseline justify-between gap-2">
           <p className="min-w-0 truncate font-display text-lg font-semibold">{team.name}</p>
-          {team.source && <p className="shrink-0 text-[11px] text-faint">{team.source}</p>}
+          {team.trackedAt ? (
+            <span className="shrink-0 rounded-full bg-mint/15 px-2 py-0.5 text-[11px] font-bold text-mint">
+              Tracked
+            </span>
+          ) : (
+            team.source && <p className="shrink-0 text-[11px] text-faint">{team.source}</p>
+          )}
         </div>
         <MemberRow members={team.members} builds={builds} ownedKeys={ownedKeys} />
       </button>
@@ -142,6 +149,7 @@ function TeamCard({
           can wear it at a time.
         </p>
       )}
+      <PotentialPanel team={team} />
       <Button
         block
         variant={inUse || state === 'done' ? 'secondary' : 'primary'}

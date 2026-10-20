@@ -49,6 +49,7 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 | 19 | Reactions: Aggravate/Spread, Swirl + VV shred, Stellar Swirl, Lunar reactions, more team buffs | [x] |
 | 20 | All teams ranked by DPS | [x] |
 | 21 | Artifacts to level & farm | [x] |
+| 22 | Optimise & track a team (max DPS, best-value upgrades, team tracker) | [x] |
 
 ---
 
@@ -422,12 +423,28 @@ The app is a surprise gift for one player (my girlfriend). It answers one questi
 
 ---
 
+## Step 22 — Optimise & track a team
+
+**Ask first**
+- What "max" means, how to rank upgrades, where the tracker lives, how tracking starts.
+
+**Tasks**
+- A team's potential DPS: Lv 90, talents that matter at 10, weapon to 90, best owned artifacts + farm pieces.
+- Upgrades ranked by team DPS gained per resin; what to farm.
+- Tracker on the Materials tab: All / By team / By character.
+
+**Done when**
+- "Optimise & track" on a team shows its max DPS and upgrades, and its members' materials appear under By team.
+
+---
+
 ## Decisions log
 
 *(Claude: add answers and decisions here as we go, newest first.)*
 
 | Date | Step | Decision / answer |
 | --- | --- | --- |
+| 2026-10-20 | 22 | **Your answers:** max = **Lv 90 + the talents that matter at 10** (those the rotation hits use, or a buff reads: Bennett/Furina/Faruzan/Candace burst, Xilonen skill), **weapon to 90** (its own cap if lower), the **best artifacts you own** (planTeam) with worn pieces levelled to max, and the **Step 21 farm pieces** where they beat what's there; **best value first**; tracker as a **"By team" view on the Materials tab** (All / By team / By character); started by an **"Optimise & track" button** on each team (Teams tab). Engine `src/engine/teams/potential.ts` (Web Worker): each upgrade (level, each talent, weapon, artifact level-up, farm piece) is scored alone against the team on its best owned gear; cost = resin from the Step 12 estimate (domains + world bosses; weekly bosses, EXP/Mora and artifact EXP aren't resin and are named instead), farm pieces = days × 120 resin; order = DPS gain ÷ (resin + 20). **The +20 is a ranking weight, not a game number** (every upgrade counts as at least one domain run, so a free +0.1% doesn't jump ahead of a +44% weapon). Tracking raises each member's goal to these targets; a character in several tracked teams keeps the **higher** of each target; "Stop tracking" keeps the goals. `TeamComp.trackedAt` marks tracked teams (no schema change). Also "Equip the best gear you own" in the panel. On your backup: Clorinde team now 1,583 → best gear 2,471 → max 16,034 DPS (first: level Clorinde's Instructor goblet +14.7%, Lion's Roar 20→90 +44%); Vesna team 27,020 → 27,258 → 52,288. |
 | 2026-09-23 | Fixes | **Weapon recommendations** (her choice: guide list, not calculated — most passives aren't modelled). "Best weapons" on each character page: the KQM quick-guide ranking for all 15 of her characters (`src/data/weaponGuides.ts`, notes paraphrased, link to guide). Weapons she owns show refinement/level/who holds it + **Equip**; her highest-ranked owned weapon is marked "Your best" (always shown). Top 5 shown, "Show all" for the rest; big groups (e.g. "5★ crit bows") collapse unowned weapons to a small icon row. Level quick picks now include 20 and scroll sideways on phones, with "Ascended" first. |
 | 2026-09-23 | Fixes | **Her feedback round 1** (texts + voice notes): (1) weapons can be equipped from the weapon's own sheet ("Wielded by" → pick a character of that weapon type; replaces their current weapon). (2) Artifacts are **grouped by set** (set headings, A→Z; inside a set by slot, rarity, level). (3) **C3/C5 talent boosts**: which talent each boosts is read from genshin-db constellation text (`talentBoosts` in `characters.json`; e.g. Yelan C3 = Burst, C5 = Skill). Stored talents stay 1–10 (materials use them); boosted levels show like the game, in blue, up to 13 (`src/engine/talents.ts`). |
 | 2026-10-19 | Fixes | **Stellar Swirl calibration (your in-game test, approved).** Miliastra Wonderland DPS calculator, level 100 dummy, Vesna · Faruzan · Qiqi · Traveler (Cryo), 60 s = 3 rotations: Vesna 1,590,377, Faruzan 150,259, Traveler 26,941, Qiqi 8,731; 39 Stellar Swirls (Vesna 26, Faruzan 13). The app was ~3.75× low because GO's Stellar Swirl (0.75 × level multiplier) leaves out the vortex hits, which game data doesn't describe. (1) **Stellar Swirl = 6.22 × level multiplier** per reaction (`STELLAR_SWIRL_MULT` in `src/engine/rotations/damage.ts`), fitted on **Faruzan alone** (nearly all her damage is swirls); with it Vesna is predicted at 477k vs 530k per rotation (−10%) without using her numbers; EM, Stellar Swirl DMG, base-DMG bonuses, crit and Anemo RES still apply. (2) **Swirls by who triggers them:** Vesna 9, Faruzan 4 per 20 s (`STELLAR_SWIRLS_BY`, editable per character); other Anemo characters carry the old 6 only when neither is in the team. Also fixed on the way: Faruzan's burst (Anemo DMG, Anemo shred, Hurricane Guard, C6 CRIT DMG) now buffs her own hits; Vesna's and the Traveler's Stellar Swirl Base DMG passives count for the whole party. Scarletproof stays at the genshin-db values (CRIT Rate +16%, Stellar Swirl +40%). (3) **"Compare with an in-game test"** on each team in Optimise → All teams (gear you wear now): run length + each character's total → game vs app DPS per character and team, green within ±10%, saved per team. Your team now: game 29,605 vs app 27,020 DPS (−9%): Faruzan ±0%, Qiqi +2%, Vesna −10%, Traveler +12%. The calibration is only proven for this team; re-test other Stellar Swirl teams with the card. |
