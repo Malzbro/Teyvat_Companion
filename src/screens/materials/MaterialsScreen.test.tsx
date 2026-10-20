@@ -1,9 +1,12 @@
 import 'fake-indexeddb/auto'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { db } from '../../db'
 import { newCharacter, saveCharacter } from '../../db/roster'
+import { newTeamComp, saveTeamComp } from '../../db/builds'
+import { trackTeam } from '../../db/goals'
 import { MaterialsScreen } from './MaterialsScreen'
 
 beforeEach(async () => {
@@ -14,7 +17,11 @@ beforeEach(async () => {
 describe('MaterialsScreen', () => {
   it('shows Level 80 → 90 totals and updates live as counts change', async () => {
     const user = userEvent.setup()
-    render(<MaterialsScreen />)
+    render(
+      <MemoryRouter>
+        <MaterialsScreen />
+      </MemoryRouter>,
+    )
 
     await user.click((await screen.findAllByRole('button', { name: 'Add goal' }))[0])
     await user.click(screen.getByRole('button', { name: /Furina/ }))
@@ -44,5 +51,39 @@ describe('MaterialsScreen', () => {
       within(gem).getByRole('button', { name: 'One less Varunada Lazurite Gemstone' }),
     )
     expect(await within(gem).findByText('5 / 6')).toBeInTheDocument()
+  })
+
+  it('By team shows a tracked team and what its members need together', async () => {
+    const user = userEvent.setup()
+    await saveCharacter({ ...newCharacter('yelan'), level: 80, ascension: 5 })
+    const team = newTeamComp('Hydro pals', [
+      { characterKey: 'furina', buildId: null },
+      { characterKey: 'yelan', buildId: null },
+    ])
+    await saveTeamComp(team)
+    const target = {
+      targetLevel: 90,
+      targetAscension: 6,
+      targetTalents: { normal: 1, skill: 1, burst: 1 },
+    }
+    await trackTeam(team.id, [
+      { characterKey: 'furina', ...target },
+      { characterKey: 'yelan', ...target },
+    ])
+    render(
+      <MemoryRouter initialEntries={['/materials?view=team']}>
+        <MaterialsScreen />
+      </MemoryRouter>,
+    )
+    expect(await screen.findByText('Hydro pals')).toBeInTheDocument()
+    // Both need 6 gemstones for ascension 6.
+    const gem = (await screen.findByText('Varunada Lazurite Gemstone')).closest(
+      'div',
+    )!.parentElement!
+    expect(within(gem).getByText('0 / 12')).toBeInTheDocument()
+    await user.click(screen.getByRole('tab', { name: 'By character' }))
+    expect(
+      await screen.findAllByRole('button', { name: /Show materials|Hide materials/ }),
+    ).toHaveLength(2)
   })
 })

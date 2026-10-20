@@ -43,6 +43,8 @@ export interface AdviceInput {
   party: string[]
   /** Best-gear plan for the party (Step 20); without it, today's gear. */
   plan?: TeamPlan
+  /** How many of each list to return (default 6). */
+  show?: number
 }
 
 export interface LevelUp {
@@ -66,6 +68,8 @@ export interface FarmTarget {
   /** Chance a single 5★ domain drop is this piece. */
   chance: number
   days: number
+  /** The target piece itself (for trying it on). */
+  piece: Artifact
 }
 
 export interface Advice {
@@ -225,6 +229,7 @@ export function artifactAdvice(input: AdviceInput): Advice {
           gain,
           chance,
           days,
+          piece,
         }
         if (!best || gain > best.gain) best = target
       }
@@ -234,5 +239,6 @@ export function artifactAdvice(input: AdviceInput): Advice {
   // Best value first: DPS gained per day of farming.
   farm.sort((x, y) => y.gain / y.days - x.gain / x.days)
 
-  return { dps: base, levelUps: levelUps.slice(0, SHOW), farm: farm.slice(0, SHOW) }
+  const show = input.show ?? SHOW
+  return { dps: base, levelUps: levelUps.slice(0, show), farm: farm.slice(0, show) }
 }

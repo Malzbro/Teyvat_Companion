@@ -3,6 +3,7 @@
 import { rotationDamage } from '../rotations/damage'
 import { artifactAdvice } from '../teams/advice'
 import { rankAllTeams } from '../teams/allTeams'
+import { teamPotential } from '../teams/potential'
 import { planTeam, suggestTeams } from '../teams/suggest'
 import { optimize } from './optimize'
 
@@ -13,6 +14,7 @@ type Job =
   | { id: number; kind: 'rotation'; input: Parameters<typeof rotationDamage>[0] }
   | { id: number; kind: 'allTeams'; input: Parameters<typeof rankAllTeams>[0] }
   | { id: number; kind: 'advice'; input: Parameters<typeof artifactAdvice>[0] }
+  | { id: number; kind: 'potential'; input: Parameters<typeof teamPotential>[0] }
 
 const scope = self as unknown as {
   onmessage: ((e: MessageEvent<Job>) => void) | null
@@ -32,7 +34,9 @@ scope.onmessage = ({ data }) => {
               ? rotationDamage(data.input)
               : data.kind === 'allTeams'
                 ? rankAllTeams(data.input)
-                : artifactAdvice(data.input)
+                : data.kind === 'advice'
+                  ? artifactAdvice(data.input)
+                  : teamPotential(data.input)
     scope.postMessage({ id: data.id, result })
   } catch (e) {
     scope.postMessage({ id: data.id, error: (e as Error).message })

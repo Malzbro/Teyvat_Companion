@@ -12,6 +12,7 @@ import {
 import type { RotationInput, RotationResult } from '../rotations/damage'
 import type { AllTeamsInput, AllTeamsResult } from '../teams/allTeams'
 import type { Advice, AdviceInput } from '../teams/advice'
+import type { Potential, PotentialInput } from '../teams/potential'
 
 export type { OptimizeInput, OptimizeResult, SuggestedBuild } from './optimize'
 export { optimize } from './optimize'
@@ -46,7 +47,7 @@ function getWorker(): Worker | null {
 
 /** Runs a job in the worker, or on this thread where Workers don't exist (tests). */
 function run<T>(
-  kind: 'optimize' | 'suggest' | 'plan' | 'rotation' | 'allTeams' | 'advice',
+  kind: 'optimize' | 'suggest' | 'plan' | 'rotation' | 'allTeams' | 'advice' | 'potential',
   input: unknown,
   local: () => T | Promise<T>,
 ): Promise<T> {
@@ -81,6 +82,10 @@ export const allTeamsInBackground = (input: AllTeamsInput): Promise<AllTeamsResu
 /** What to level and farm for a team (Step 21), off the main thread. */
 export const adviceInBackground = (input: AdviceInput): Promise<Advice> =>
   run('advice', input, () => import('../teams/advice').then((m) => m.artifactAdvice(input)))
+
+/** A team's max DPS and the upgrades that get there (Step 22), off the main thread. */
+export const potentialInBackground = (input: PotentialInput): Promise<Potential> =>
+  run('potential', input, () => import('../teams/potential').then((m) => m.teamPotential(input)))
 
 /** Best gear for a whole party without blocking the page. */
 export const planTeamInBackground = (input: Parameters<typeof planTeam>[0]): Promise<TeamPlan> =>
